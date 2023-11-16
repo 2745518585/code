@@ -1,0 +1,8 @@
+*.exe
+include/
+test/include/
+lib/
+test/lib/
+.data/
+test/.data/
+cdqz/

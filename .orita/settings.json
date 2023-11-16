@@ -1,0 +1,10 @@
+{
+    "data": {
+        "compile_argu": [
+            "-std=c++14",
+            "-O2",
+            "-Wl,--stack=2147483648"
+        ],
+        "data_dir": "./.data"
+    }
+}
