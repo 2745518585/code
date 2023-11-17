@@ -9,9 +9,9 @@ int main(int argc,char **argv)
     printf("%d\n",T);
     while(T--)
     {
-        int n=rnd(5e5,5e5);
+        int n=rnd(1,1e4);
         printf("%d\n",n);
-        for(int i=1;i<=n;++i) printf("%d ",rnd(1e9-10,1e9));
+        for(int i=1;i<=n;++i) printf("%d ",rnd(1,1e9));
         printf("\n");
     }
     return 0;

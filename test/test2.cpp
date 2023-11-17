@@ -3,9 +3,14 @@
 #include<cstring>
 using namespace std;
 typedef long long ll;
-const int N=51;
-int n,a[N];
-ll b[N],f[N][N][N][N],g[N][N][N][N];
+const int N=5001;
+int n;
+ll a[N],d[N],b[N],f[N][N];
+ll sum(int x)
+{
+    if(x==0) return 0;
+    return (x&-x);
+}
 int main()
 {
     int T;
@@ -15,41 +20,25 @@ int main()
         scanf("%d",&n);
         for(int i=1;i<=n;++i)
         {
-            scanf("%d",&a[i]);
+            scanf("%lld",&a[i]);
         }
         sort(a+1,a+n+1);
         for(int i=1;i<=n;++i) b[i]=b[i-1]+a[i];
-        memset(f,0x3f,sizeof(f));
-        memset(g,0x3f,sizeof(g));
-        for(int i=1;i<=n;++i) f[i][i][0][0]=g[i][i][0][0]=0;
-        for(int i=n;i>=1;--i)
+        for(int i=0;i<=n;++i) d[i]=sum(i-1);
+        for(int i=0;i<=n;++i)
         {
-            for(int j=i;j<=n;++j)
+            for(int j=0;j<=n;++j) f[i][j]=1e18;
+        }
+        f[0][1]=0;
+        for(int i=0;i<=n;++i)
+        {
+            for(int j=1;j<=n;++j)
             {
-                for(int o=j-i;o>=1;--o)
-                {
-                    for(int p=o;p<=j-i;++p)
-                    {
-                        for(int k=i;k<=j-1;++k)
-                        {
-                            for(int q=o;q<=p;++q)
-                            {
-                                if(g[i][k][q-1][p-1]+f[k+1][j][o-1][q-1]+((1<<(q-1))-1)+(b[j]-b[i-1])<=1e18) printf("%d %d %d %d: %d %d %lld %lld %lld\n",i,j,o,p,k,q,g[i][k][q-1][p-1],f[k+1][j][o-1][q-1],g[i][k][q-1][p-1]+f[k+1][j][o-1][q-1]+((1<<(q-1))-1)+(b[j]-b[i-1]));
-                                f[i][j][o][p]=min(f[i][j][o][p],g[i][k][q-1][p-1]+f[k+1][j][o-1][q-1]+((1<<(q-1))-1)+(b[j]-b[i-1]));
-                            }
-                        }
-                        g[i][j][o][p]=min(f[i][j][o][p],g[i][j][o+1][p]);
-                    }
-                }
-                for(int p=0;p<=j-i;++p) g[i][j][0][p]=min(g[i][j][0][p],g[i][j][1][p]);
+                f[i][j*2]=min(f[i][j*2],f[i][j]+b[n-i]);
+                f[i+1][j-1]=min(f[i+1][j-1],f[i][j]+d[j]);
             }
         }
-        ll s=1e18;
-        for(int i=0;i<=n-1;++i)
-        {
-            for(int j=i;j<=n-1;++j) s=min(s,f[1][n][i][j]);
-        }
-        printf("%lld\n",s);
+        printf("%lld\n",f[n][0]-(n-1));
     }
     return 0;
 }
