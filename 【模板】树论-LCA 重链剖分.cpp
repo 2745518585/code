@@ -1,18 +1,10 @@
 #include<cstdio>
 #include<algorithm>
+#include<vector>
 using namespace std;
 const int N=1000001;
-int n,m,rt,p=1,t[N];
-struct road
-{
-    int m,q;
-}a[N<<1];
-void road(int x,int y)
-{
-    a[++p].m=y;
-    a[p].q=t[x];
-    t[x]=p;
-}
+int n,m,rt;
+vector<int> a[N];
 struct tree
 {
     int f,s,d,t,z;
@@ -21,23 +13,23 @@ void dfs1(int x)
 {
     T[x].s=1;
     T[x].d=T[T[x].f].d+1;
-    for(int i=t[x];i!=0;i=a[i].q)
+    for(auto i:a[x])
     {
-        if(a[i].m==T[x].f) continue;
-        T[a[i].m].f=x;
-        dfs1(a[i].m);
-        T[x].s+=T[a[i].m].s;
-        if(T[a[i].m].s>T[T[x].z].s) T[x].z=a[i].m;
+        if(i==T[x].f) continue;
+        T[i].f=x;
+        dfs1(i);
+        T[x].s+=T[i].s;
+        if(T[i].s>T[T[x].z].s) T[x].z=i;
     }
 }
-void dfs2(int x,int k)
+void dfs2(int x,int t)
 {
-    T[x].t=k;
-    if(T[x].z) dfs2(T[x].z,k);
-    for(int i=t[x];i!=0;i=a[i].q)
+    T[x].t=t;
+    if(T[x].z) dfs2(T[x].z,t);
+    for(auto i:a[x])
     {
-        if(a[i].m==T[x].f||a[i].m==T[x].z) continue;
-        dfs2(a[i].m,a[i].m);
+        if(i==T[x].f||i==T[x].z) continue;
+        dfs2(i,i);
     }
 }
 int LCA(int x,int y)
@@ -57,8 +49,8 @@ int main()
     {
         int x,y;
         scanf("%d%d",&x,&y);
-        road(x,y);
-        road(y,x);
+        a[x].push_back(y);
+        a[y].push_back(x);
     }
     dfs1(rt);
     dfs2(rt,rt);

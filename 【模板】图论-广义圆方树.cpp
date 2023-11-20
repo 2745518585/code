@@ -1,78 +1,62 @@
 #include<cstdio>
 #include<algorithm>
+#include<vector>
 #include<stack>
 using namespace std;
 typedef long long ll;
 const int N=1000001;
-int n,m,q,w,p=1,t[N],t2[N],tot,f[N],g[N];
-ll s;
+int n,m,q,t,tot,g[N];
+ll s,f[N];
+vector<int> a[N],a2[N];
 stack<int> S;
-struct road
-{
-    int m,q;
-}a[N<<1];
 struct tree
 {
     int b,c;
 }T[N];
-void road(int x,int y)
-{
-    a[++p].m=y;
-    a[p].q=t[x];
-    t[x]=p;
-}
-void road2(int x,int y)
-{
-    a[++p].m=y;
-    a[p].q=t2[x];
-    t2[x]=p;
-}
 void dfs(int x)
 {
-    ++w;
+    ++t;
     T[x].b=T[x].c=++tot;
     S.push(x);
-    for(int i=t[x];i!=0;i=a[i].q)
+    for(auto i:a[x])
     {
-        if(T[a[i].m].b==0)
+        if(T[i].b==0)
         {
-            dfs(a[i].m);
-            T[x].c=min(T[x].c,T[a[i].m].c);
-            if(T[a[i].m].c==T[x].b)
+            dfs(i);
+            T[x].c=min(T[x].c,T[i].c);
+            if(T[i].c==T[x].b)
             {
                 ++q;
-                while(S.top()!=a[i].m)
+                while(true)
                 {
-                    ++f[q];
-                    road2(q,S.top());
-                    road2(S.top(),q);
+                    a2[q].push_back(S.top());
+                    a2[S.top()].push_back(q);
+                    ++g[q];
+                    if(S.top()==i) break;
                     S.pop();
                 }
-                ++f[q];
-                road2(q,S.top());
-                road2(S.top(),q);
                 S.pop();
-                ++f[q];
-                road2(q,x);
-                road2(x,q);
+                a2[q].push_back(x);
+                a2[x].push_back(q);
+                ++g[q];
             }
         }
-        T[x].c=min(T[x].c,T[a[i].m].b);
+        T[x].c=min(T[x].c,T[i].b);
     }
 }
 void dfs2(int x,int fa)
 {
     int u;
-    if(x<=n) g[x]=1,u=-1;
-    else g[x]=0,u=f[x];
-    for(int i=t2[x];i!=0;i=a[i].q)
+    if(x<=n) f[x]=1,u=-1;
+    else f[x]=0,u=g[x];
+    for(auto i:a2[x])
     {
-        if(a[i].m==fa) continue;
-        dfs2(a[i].m,x);
-        s+=(ll)u*g[x]*g[a[i].m];
-        g[x]+=g[a[i].m];
+        if(i==fa) continue;
+        dfs2(i,x);
+        s+=(ll)u*f[x]*f[i];
+        f[x]+=f[i];
     }
-    s+=(ll)u*g[x]*(w-g[x]);
+    s+=(ll)u*f[x]*(t-f[x]);
 }
 int main()
 {
@@ -81,14 +65,14 @@ int main()
     {
         int x,y;
         scanf("%d%d",&x,&y);
-        road(x,y);
-        road(y,x);
+        a[x].push_back(y);
+        a[y].push_back(x);
     }
     q=n;
     for(int i=1;i<=n;++i)
     {
         if(T[i].b!=0) continue;
-        w=0;
+        t=0;
         dfs(i);
         dfs2(i,0);
     }
