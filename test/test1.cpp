@@ -1,42 +1,33 @@
 #include<cstdio>
 #include<algorithm>
-#include<cstring>
 using namespace std;
-typedef long long ll;
 const int N=1000001;
-int n;
-ll a[N],b[N],d[N],f[N],g[N];
-ll sum(int x)
+int n,k,a[N];
+int gcd(int a,int b)
 {
-    if(x==0) return 0;
-    return (x&-x);
+    if(b==0) return a;
+    return gcd(b,a%b);
 }
 int main()
 {
-    int T;
-    scanf("%d",&T);
-    while(T--)
+    scanf("%d%d",&n,&k);
+    int w=0;
+    for(int i=1;i<=k;++i) w+=(a[i]=i);
+    a[k+1]=n;
+    int t=k;
+    while(gcd(w,n)!=1)
     {
-        scanf("%d",&n);
-        for(int i=1;i<=n;++i)
+        while(a[t]+1>=a[t+1]) --t;
+        ++a[t],++w;
+    }
+    int x=1;
+    for(int i=1;i<=n-1;++i)
+    {
+        for(int j=1;j<=k;++j)
         {
-            scanf("%lld",&a[i]);
+            x=(x+a[j]-1)%n+1;
+            printf("%d ",x);
         }
-        sort(a+1,a+n+1);
-        for(int i=1;i<=n;++i) b[i]=b[i-1]+a[i];
-        for(int i=0;i<=n;++i) d[i]=sum(i-1);
-        for(int i=0;i<=n;++i) f[i]=g[i]=1e18;
-        f[1]=0;
-        for(int i=0;i<=n;++i)
-        {
-            for(int j=0;j<=n;++j) g[j]=f[j],f[j]=1e18;
-            for(int j=1;j<=n;++j)
-            {
-                g[j*2]=min(g[j*2],g[j]+b[n-i]);
-                f[j-1]=min(f[j-1],g[j]+d[j]);
-            }
-        }
-        printf("%lld\n",g[0]-(n-1));
     }
     return 0;
 }

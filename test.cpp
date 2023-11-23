@@ -1,15 +1,9 @@
 #include<cstdio>
 #include<algorithm>
 #include<cmath>
+#include<map>
 using namespace std;
-// #define USE_LONG_DOUBLE
-#ifdef USE_LONG_DOUBLE
 typedef long double ld;
-#define ld_f "Lf"
-#else
-typedef double ld;
-#define ld_f "lf"
-#endif
 const ld eps=1e-12,pi=acos(-1.0);
 const int N=1000001;
 int dcmp(ld x)
@@ -17,15 +11,6 @@ int dcmp(ld x)
     if(fabs(x)<eps) return 0;
     if(x>0) return 1;
     else return -1;
-}
-
-ld ssqrt(ld x)
-{
-    #ifdef USE_LONG_DOUBLE
-    return sqrtl(x);
-    #else
-    return sqrt(x);
-    #endif
 }
 
 struct pt;
@@ -39,7 +24,7 @@ struct pt
     explicit pt(const vec &p);
     void input()
     {
-        scanf("%" ld_f "%" ld_f,&x,&y);
+        scanf("%Lf%Lf",&x,&y);
     }
 };
 struct vec
@@ -50,9 +35,13 @@ struct vec
     vec(const pt &p);
     void input()
     {
-        scanf("%" ld_f "%" ld_f,&x,&y);
+        scanf("%Lf%Lf",&x,&y);
     }
-    ld len() const {return ssqrt(x*x+y*y);}
+    ld len() const {return sqrtl(x*x+y*y);}
+    vec turn(ld b) const
+    {
+        return vec(x*cos(b)-y*sin(b),y*cos(b)+x*sin(b));
+    }
 };
 
 pt::pt() {}
@@ -116,6 +105,7 @@ ld dis(const pt &a,const pt &b)
 }
 ld dis(const pt &a,const lin &b)
 {
+    if(a==b.a||b.t==pt(0,0)) return 0;
     return dis(a,b.a)*fabs(sin(angle(a-b.a,b.t)));
 }
 bool ifinter(const seg &a,const seg &b)
@@ -130,13 +120,9 @@ pt inter(const lin &a,const lin &b)
     if(dcmp(a.t^b.t)==0) return pt(0,0);
     return a.a+((b.t^(a.a-b.a))/(a.t^b.t))*a.t;
 }
-vec turn(const vec &a,ld b)
-{
-    return vec(a.x*cos(b)-a.y*sin(b),a.y*cos(b)+a.x*sin(b));
-}
 pt sym(const pt &a,const lin &b)
 {
-    return pt(inter(lin(a,turn(b.t,pi/2)),b)*2-a);
+    return pt(inter(lin(a,b.t.turn(pi/2)),b)*2-a);
 }
 
 struct squ
@@ -257,7 +243,7 @@ struct poly
             while(dcmp((a[j1+1]-a[j1])*(a[i+1]-a[i]))>0) j1=j1%n+1;
             while(dcmp((a[i+1]-a[i])*(a[j2]-a[j2+1]))<0||dcmp((a[i+1]-a[i])^(a[j2]-a[j2+1]))<0) j2=j2%n+1;
             while(dcmp((a[i+1]-a[i])^(a[j3]-a[j3+1]))<=0||dcmp((a[i+1]-a[i])*(a[j3+1]-a[j3]))<0) j3=j3%n+1;
-            lin p=lin(a[i],a[i+1]-a[i]),p1=lin(a[j1],turn(p.t,pi/2)),p2=lin(a[j2],p.t),p3=lin(a[j3],turn(p.t,pi/2));
+            lin p=lin(a[i],a[i+1]-a[i]),p1=lin(a[j1],p.t.turn(pi/2)),p2=lin(a[j2],p.t),p3=lin(a[j3],p.t.turn(pi/2));
             squ t=squ(inter(p,p1),inter(p1,p2),inter(p2,p3),inter(p3,p));
             s=min(s,t);
         }
@@ -346,6 +332,12 @@ struct hp
         return s;
     }
 };
+
+struct dynamic_poly
+{
+    
+};
+
 int main()
 {
     

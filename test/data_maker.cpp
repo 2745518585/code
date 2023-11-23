@@ -1,7 +1,8 @@
 #include<cstdio>
 #include<algorithm>
-#include"D:\Orita\data_maker.hpp"
+#include"orita.hpp"
 using namespace std;
+using namespace orita;
 int main(int argc,char **argv)
 {
     register_rnd(argc,argv);
