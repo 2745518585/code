@@ -1,19 +1,17 @@
-#include<cstdio>
-#include<algorithm>
+#include<bits/stdc++.h>
 #include"orita.hpp"
 using namespace std;
 using namespace orita;
 int main(int argc,char **argv)
 {
     register_rnd(argc,argv);
-    int T=rnd(1,1);
-    printf("%d\n",T);
-    while(T--)
-    {
-        int n=rnd(1,1e4);
-        printf("%d\n",n);
-        for(int i=1;i<=n;++i) printf("%d ",rnd(1,1e9));
-        printf("\n");
-    }
+    cout<<rnd_pair(1,10,[&](auto x1,auto x2){return x1<x2;})<<"\n";
+    cout<<rnd_pair<_LES>(1,10)<<"\n";
+    cout<<rnd_pair<std::less>(1,1e5)<<"\n";
+    cout<<rnd_pair<std::less<int>>(1,1e5)<<"\n";
+    cout<<rnd_pair<_LES>(rdl<int,int>(1,10))<<"\n";
+    cout<<rnd_pair<_LES>([&](){return rnd(1,10);})<<"\n";
+    // cout<<rnd_pair<std::less>(rdl(1,10),rdl(1,1e5))<<"\n";
+    cout<<rnd_pair<_LES>(rdl<int,int>(1,10),rdl<int,int>(1,1e5))<<"\n";
     return 0;
 }

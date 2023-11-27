@@ -1,11 +1,12 @@
 #include<cstdio>
 #include<algorithm>
 #include<cmath>
+#include<vector>
 #include<map>
 using namespace std;
 typedef long double ld;
 const ld eps=1e-12,pi=acos(-1.0);
-const int N=1000001;
+const int N=201;
 int dcmp(ld x)
 {
     if(fabs(x)<eps) return 0;
@@ -41,6 +42,16 @@ struct vec
     vec turn(ld b) const
     {
         return vec(x*cos(b)-y*sin(b),y*cos(b)+x*sin(b));
+    }
+    vec &resize(ld p)
+    {
+        p/=len();
+        x*=p,y*=p;
+        return *this;
+    }
+    ld angle()
+    {
+        return atan2(y,x);
     }
 };
 
@@ -93,6 +104,10 @@ struct lin
     {
         return dcmp((x-a)^t)<0;
     }
+    bool onright(const pt &x) const
+    {
+        return dcmp((x-a)^t)>0;
+    }
 };
 
 ld angle(const vec &a,const vec &b)
@@ -125,221 +140,47 @@ pt sym(const pt &a,const lin &b)
     return pt(inter(lin(a,b.t.turn(pi/2)),b)*2-a);
 }
 
-struct squ
+int n,m,f[N],g[N][N],h[N];
+pt a[N];
+struct str
 {
-    pt a;
-    vec b1,b2;
-    squ(pt a1,pt a2,pt a3,pt a4)
-    {
-        if(dcmp(a2.y-a1.y)<0||(dcmp(a2.y-a1.y)==0&&dcmp(a2.x-a1.x)<0)) swap(a1,a2);
-        if(dcmp(a3.y-a1.y)<0||(dcmp(a3.y-a1.y)==0&&dcmp(a3.x-a1.x)<0)) swap(a1,a3);
-        if(dcmp(a4.y-a1.y)<0||(dcmp(a4.y-a1.y)==0&&dcmp(a4.x-a1.x)<0)) swap(a1,a4);
-        if(a1+a2==a3+a4) a=a1,b1=a3-a1,b2=a4-a1;
-        else if(a1+a3==a2+a4) a=a1,b1=a2-a1,b2=a4-a1;
-        else if(a1+a4==a2+a3) a=a1,b1=a2-a1,b2=a3-a1;
-        if(dcmp(b1^b2)<0) swap(b1,b2);
-    }
+    int x,y;
 };
-bool operator<(const squ &a,const squ &b)
+bool cmp(const str &x,const str &y)
 {
-    return dcmp((a.b1^a.b2)-(b.b1^b.b2))<=0;
+    return lin(seg(a[x.y],a[x.x])).t.angle()<lin(seg(a[y.y],a[y.x])).t.angle();
 }
-
-struct poly
-{
-    int n;
-    pt *a=NULL;
-    poly() {}
-    poly(int _n,pt *_a):n(_n)
-    {
-        if(a!=NULL) delete[] a;
-        a=new pt[n+2];
-        for(int i=1;i<=n;++i) a[i]=_a[i];
-    }
-    poly(const poly &p):n(p.n)
-    {
-        if(a!=NULL) delete[] a;
-        a=new pt[n+2];
-        for(int i=1;i<=n;++i) a[i]=p[i];
-    }
-    poly(const poly &&p):n(p.n),a(p.a) {}
-    ~poly() {if(a!=NULL) delete[] a,a=NULL;}
-    pt &operator[](const size_t pos) {return a[pos];}
-    pt operator[](const size_t pos) const {return a[pos];}
-    void input()
-    {
-        scanf("%d",&n);
-        if(a!=NULL) delete[] a;
-        a=new pt[n+2];
-        for(int i=1;i<=n;++i) a[i].input();
-    }
-    void solve()
-    {
-        int m=n;
-        n=0;
-        for(int i=2;i<=m;++i)
-        {
-            if(a[i].y<a[1].y||(a[i].y==a[1].y&&a[i].x<a[1].x)) swap(a[1],a[i]);
-        }
-        sort(a+2,a+m+1,[&](const pt &x,const pt &y)
-        {
-            int z=dcmp((x-a[1])^(y-a[1]));
-            return z>0||(z==0&&dcmp(dis(x,a[1])-dis(y,a[1]))<0);
-        });
-        pt *b=new pt[m+2];
-        b[++n]=a[1];
-        for(int i=2;i<=m;++i)
-        {
-            while(n>1&&dcmp((b[n]-b[n-1])^(a[i]-b[n]))<=0) --n;
-            b[++n]=a[i];
-        }
-        b[n+1]=a[1];
-        swap(a,b);
-        delete[] b;
-    }
-    ld area()
-    {
-        ld s=0;
-        a[n+1]=a[1];
-        for(int i=1;i<=n;++i)
-        {
-            s+=(a[i]^a[i+1])/2;
-        }
-        return s;
-    }
-    ld len()
-    {
-        ld s=0;
-        a[n+1]=a[1];
-        for(int i=1;i<=n;++i)
-        {
-            s+=dis(a[i],a[i+1]);
-        }
-        return s;
-    }
-    ld maxdis()
-    {
-        if(n==2) return dis(a[1],a[2]);
-        ld s=0;
-        a[n+1]=a[1];
-        for(int i=1,j=1;i<=n;++i)
-        {
-            while(dcmp((a[i+1]-a[i])^(a[j]-a[j+1]))<0) j=j%n+1;
-            s=max(s,max(dis(a[i],a[j]),dis(a[i+1],a[j])));
-            while(dcmp(angle(a[i+1]-a[i],a[j]-a[j+1]))==0)
-            {
-                j=j%n+1;
-                s=max(s,max(dis(a[i],a[j]),dis(a[i+1],a[j])));
-            }
-        }
-        return s;
-    }
-    squ minsquare()
-    {
-        squ s=squ(pt(0,0),pt(0,1e9),pt(1e9,0),pt(1e9,1e9));
-        a[n+1]=a[1];
-        for(int i=1,j1=1,j2=1,j3=1;i<=n;++i)
-        {
-            while(dcmp((a[j1+1]-a[j1])*(a[i+1]-a[i]))>0) j1=j1%n+1;
-            while(dcmp((a[i+1]-a[i])*(a[j2]-a[j2+1]))<0||dcmp((a[i+1]-a[i])^(a[j2]-a[j2+1]))<0) j2=j2%n+1;
-            while(dcmp((a[i+1]-a[i])^(a[j3]-a[j3+1]))<=0||dcmp((a[i+1]-a[i])*(a[j3+1]-a[j3]))<0) j3=j3%n+1;
-            lin p=lin(a[i],a[i+1]-a[i]),p1=lin(a[j1],p.t.turn(pi/2)),p2=lin(a[j2],p.t),p3=lin(a[j3],p.t.turn(pi/2));
-            squ t=squ(inter(p,p1),inter(p1,p2),inter(p2,p3),inter(p3,p));
-            s=min(s,t);
-        }
-        return s;
-    }
-};
-
-struct hp
-{
-    int n;
-    lin *a=NULL;
-    hp() {}
-    hp(int _n,lin *_a):n(_n)
-    {
-        if(a!=NULL) delete[] a;
-        a=new lin[n+3];
-        for(int i=1;i<=n;++i) a[i]=_a[i];
-    }
-    hp(const hp &p):n(p.n)
-    {
-        if(a!=NULL) delete[] a;
-        a=new lin[n+3];
-        for(int i=1;i<=n;++i) a[i]=p[i];
-    }
-    hp(const hp &&p):n(p.n),a(p.a) {}
-    ~hp() {if(a!=NULL) delete[] a,a=NULL;}
-    lin &operator[](const size_t pos) {return a[pos];}
-    lin operator[](const size_t pos) const {return a[pos];}
-    void input()
-    {
-        scanf("%d",&n);
-        if(a!=NULL) delete[] a;
-        a=new lin[n+3];
-        for(int i=1;i<=n;++i) a[i].input();
-    }
-    void solve()
-    {
-        lin *b=new lin[n+1];
-        for(int i=1;i<=n;++i) b[i]=a[i];
-        int m=n;
-        sort(b+1,b+m+1,[](lin a,lin b)
-        {
-            return atan2(a.t.y,a.t.x)<atan2(b.t.y,b.t.x);
-        });
-        int T=1,R=0;
-        a[++R]=b[1];
-        for(int i=2;i<=m;++i)
-        {
-            while(T<=R-1&&!b[i].onleft(inter(a[R-1],a[R]))) --R;
-            while(T<=R-1&&!b[i].onleft(inter(a[T],a[T+1]))) ++T;
-            a[++R]=b[i];
-            if(T<=R-1&&dcmp(a[R].t^a[R-1].t)==0)
-            {
-                if(dcmp((a[R-1].a-a[R].a)^a[R].t)>=0&&dcmp(a[R-1].t*a[R].t)<0)
-                {
-                    n=0;
-                    return;
-                }
-                if(dcmp(a[R-1].t*a[R].t)>0)
-                {
-                    if(dcmp((a[R-1].a-a[R].a)^a[R].t)>0) swap(a[R],a[R-1]);
-                    --R;
-                }
-            }
-        }
-        while(T<=R-1&&!a[T].onleft(inter(a[R-1],a[R]))) --R;
-        n=R-T+1;
-        if(n<=2) n=0;
-        for(int i=1;i<=n;++i)
-        {
-            a[i]=a[T+i-1];
-        }
-        a[n+1]=a[1];
-        a[n+2]=a[2];
-        delete[] b;
-    }
-    ld area()
-    {
-        ld s=0;
-        a[n+1]=a[1];
-        a[n+2]=a[2];
-        for(int i=1;i<=n;++i)
-        {
-            s+=(inter(a[i],a[i+1])^inter(a[i+1],a[i+2]))/2;
-        }
-        return s;
-    }
-};
-
-struct dynamic_poly
-{
-    
-};
-
 int main()
 {
-    
+    scanf("%d%d",&m,&n);
+    n+=m+1;
+    for(int i=2;i<=m+1;++i) a[i].input(),h[i]=1;
+    for(int i=m+2;i<=n;++i) a[i].input(),h[i]=-1;
+    a[1]=pt(0,0);
+    vector<str> p;
+    for(int i=1;i<=n;++i)
+    {
+        for(int j=1;j<=n;++j)
+        {
+            if(i==j) continue;
+            for(int k=1;k<=n;++k)
+            {
+                if(j==1) {if(!lin(seg(pt(0,0),a[i])).onright(a[k])&&!lin(seg(a[i],a[j])).onright(a[k])) g[i][j]+=h[k];}
+                else {if(!lin(seg(pt(0,0),a[i])).onright(a[k])&&!lin(seg(a[i],a[j])).onright(a[k])&&lin(seg(a[j],pt(0,0))).onleft(a[k])) g[i][j]+=h[k];}
+            }
+            // printf("%d %d %d\n",i,j,g[i][j]);
+            p.push_back({i,j});
+        }
+    }
+    sort(p.begin(),p.end(),cmp);
+    for(int i=1;i<=n;++i) f[i]=-1e9;
+    f[1]=0;
+    for(auto i:p)
+    {
+        f[i.y]=max(f[i.y],f[i.x]+g[i.x][i.y]);
+        // printf("%d %d %d\n",i.x,i.y,g[i.x][i.y]);
+        // for(int j=1;j<=n;++j) printf("%d ",f[j]);printf("\n");
+    }
+    printf("%d",f[1]);
     return 0;
 }
