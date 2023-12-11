@@ -49,7 +49,7 @@ struct vec
     vec resize(ld p)
     {
         p/=len();
-        x/=p,y/=p;
+        x*=p,y*=p;
         return *this;
     }
 };
@@ -253,6 +253,18 @@ struct poly
             s+=dis(a[i],a[i+1]);
         }
         return s;
+    }
+    bool sinc(const pt &x)
+    {
+        a[n+1]=a[1];
+        int u=0;
+        for(int i=1;i<=n;++i)
+        {
+            if(ifinter(seg(x,pt(x.x,1e36)),seg(a[i],a[i+1]))&&!seg(x,pt(x.x,1e36)).inc(a[i].x<a[i+1].x?a[i]:a[i+1])) ++u;
+            if(seg(a[i],a[i+1]).inc(x)) return true;
+        }
+        if(u%2==1) return true;
+        return false;
     }
     ld maxdis()
     {
