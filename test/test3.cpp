@@ -1,83 +1,129 @@
-#include<bits/stdc++.h>
+#include<cstdio>
+#include<algorithm>
+#include<cstring>
 using namespace std;
-typedef long double ld;
-std::mt19937 rd(std::random_device{}());
-void register_rnd(int argc,char **argv)
+const int M=101;
+int f[40000001];
+char a[M][M];
+int m,n;
+int sum()
 {
-    if(argc>=2) rd.seed(std::stoul(argv[1]));
-}
-int rnd(const int &llim,const int &ulim)
-{
-    return (std::uniform_int_distribution<int>(llim,ulim))(rd);
-}
-const int N=1000001;
-const short dx[4]={-1,-1,1,1},dy[4]={-1,1,-1,1};
-struct pt
-{
-    ld x=0,y=0;
-    pt() {};
-    pt(const ld &_x,const ld &_y):x(_x),y(_y) {};
-};
-ld dis(const pt &a,const pt &b)
-{
-    return sqrtl((a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y));
-}
-ld dis(const pt &a,const pt &b,const ld &ta,const ld &tb)
-{
-    ld s=1e18;
-    for(int i=0;i<=3;++i) for(int j=0;j<=3;++j) s=min(s,dis(pt(a.x+dx[i]*ta,a.y+dy[i]*ta),pt(b.x+dx[j]*tb,b.y+dy[j]*tb)));
-    if(a.x+ta>b.x-tb&&b.x+tb>a.x-ta) s=min(s,abs(a.y-b.y)-ta-tb);
-    if(a.y+ta>b.y-tb&&b.y+tb>a.y-ta) s=min(s,abs(a.x-b.x)-ta-tb);
+    int s=0;
+    for(int i=1;i<=m;++i)
+    {
+        for(int j=1;j<=n;++j)
+        {
+            if(a[i][j]=='o') s|=1<<((i-1)*5+j-1);
+        }
+    }
     return s;
 }
-int n;
-pt a[N];
-ld b[N],R;
-bool check(int x,const ld &t)
+bool check1(int x)
 {
-    for(int i=0;i<=n+1;++i)
+    for(int i=1;i<=n;++i)
     {
-        if(x!=i&&dis(a[x],a[i],t,b[i])<R*2) return false;
+        if(a[x][i]=='o') return false;
     }
     return true;
 }
-int main(int argc,char **argv)
+bool check2(int x)
 {
-    register_rnd(argc,argv);
-    ld x1=rnd(0,100000)/100.0,y1=rnd(0,100000)/100.0,x2=rnd(0,100000)/100.0,y2=rnd(0,100000)/100.0;
-    n=rnd(0,20);
-    a[0]=pt(x1,y1);
-    a[n+1]=pt(x2,y2);
-    ld w=1e18;
-    for(int i=1;i<=n;++i)
+    for(int i=1;i<=m;++i)
     {
-        a[i].x=rnd(0,100000)/100.0;
-        a[i].y=rnd(0,100000)/100.0;
+        if(a[i][x]=='o') return false;
     }
-    for(int i=1;i<=n;++i)
+    return true;
+}
+int main()
+{
+    f[1]=1;
+    f[3]=2;
+    f[7]=1;
+    f[15]=1;
+    f[39]=2;
+    f[71]=2;
+    f[135]=2;
+    f[35]=1;
+    f[99]=1;
+    f[1059]=2;
+    f[67]=1;
+    f[195]=2;
+    f[2115]=2;
+    f[33]=2;
+    f[97]=1;
+    f[225]=2;
+    f[1121]=2;
+    f[2145]=2;
+    f[1057]=1;
+    f[3105]=2;
+    f[33825]=1;
+    int T;
+    scanf("%d",&T);
+    while(T--)
     {
-        for(int j=0;j<=n+1;++j)
+        for(int i=1;i<=5;++i)
         {
-            if(i!=j) w=min(w,dis(a[i],a[j]));
+            scanf("%s",a[i]+1);
         }
-    }
-    R=rnd(0,w/2*100)/100.0;
-    printf("%.2Lf %.2Lf %.2Lf\n%.2Lf %.2Lf\n%.2Lf\n",x1,y1,R,x2,y2,(ld)rnd(0,100000)/100.0);
-    printf("%d\n",n);
-    for(int i=1;i<=n;++i)
-    {
-        ld l=0,r=min(min(a[i].x,a[i].y),(ld)1000);
-        while(r-l>1e-3)
+        m=n=5;
+        while(check1(1))
         {
-            ld z=(l+r)/2;
-            if(check(i,z)) l=z;
-            else r=z;
+            for(int i=1;i<=m;++i)
+            {
+                for(int j=1;j<=n;++j) a[i][j]=a[i+1][j];
+            }
+            --m;
         }
-        b[i]=rnd(0,l*100)/100.0;
-    }
-    for(int i=1;i<=n;++i)
-    {
-        printf("%.2Lf %.2Lf %.2Lf\n",a[i].x-b[i],a[i].y-b[i],b[i]*2);
+        while(check1(m)) --m;
+        while(check2(1))
+        {
+            for(int i=1;i<=m;++i)
+            {
+                for(int j=1;j<=n;++j) a[i][j]=a[i][j+1];
+            }
+            --n;
+        }
+        while(check2(n)) --n;
+        int w=sum();
+        if(f[w])
+        {
+            if(f[w]==1) printf("Away\n");
+            else printf("Far\n");
+            continue;
+        }
+        for(int i=1;i<=m/2;++i)
+        {
+            for(int j=1;j<=n;++j) swap(a[i][j],a[m-i+1][j]);
+        }
+        w=sum();
+        if(f[w])
+        {
+            if(f[w]==1) printf("Away\n");
+            else printf("Far\n");
+            continue;
+        }
+        for(int i=1;i<=m;++i)
+        {
+            for(int j=1;j<=n/2;++j) swap(a[i][j],a[i][n-j+1]);
+        }
+        w=sum();
+        if(f[w])
+        {
+            if(f[w]==1) printf("Away\n");
+            else printf("Far\n");
+            continue;
+        }
+        for(int i=1;i<=m/2;++i)
+        {
+            for(int j=1;j<=n;++j) swap(a[i][j],a[m-i+1][j]);
+        }
+        w=sum();
+        if(f[w])
+        {
+            if(f[w]==1) printf("Away\n");
+            else printf("Far\n");
+            continue;
+        }
     }
     return 0;
 }

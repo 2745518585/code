@@ -116,7 +116,16 @@
         "variant": "cpp",
         "*.cppm": "cpp",
         "xstring": "cpp",
-        "xtree": "cpp"
+        "xtree": "cpp",
+        "xfacet": "cpp",
+        "xiosbase": "cpp",
+        "xlocale": "cpp",
+        "xlocbuf": "cpp",
+        "xlocinfo": "cpp",
+        "xlocmes": "cpp",
+        "xlocmon": "cpp",
+        "xlocnum": "cpp",
+        "xloctime": "cpp"
     },
     "C_Cpp.clang_format_style": "file:.vscode/.clang-format",
     "terminal.integrated.mouseWheelScrollSensitivity": 0.5,

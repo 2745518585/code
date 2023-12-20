@@ -1,11 +1,8 @@
-#include<bits/stdc++.h>
-#include<windows.h>
+#include<cstdio>
+#include<cstdlib>
 using namespace std;
 int main()
 {
-    Sleep(1000);
-    int x;
-    scanf("%d",&x);
-    printf("%d",x);
+    printf("%s\n",getenv("ABC"));
     return 0;
 }
