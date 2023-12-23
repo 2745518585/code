@@ -4,6 +4,9 @@
     "git.enableSmartCommit": true,
     "window.commandCenter": true,
     "editor.cursorSmoothCaretAnimation": "on",
+    "[cpp]": {
+        "editor.wordBasedSuggestions": "off"
+    },
     "files.associations": {
         "iostream": "cpp",
         "array": "cpp",

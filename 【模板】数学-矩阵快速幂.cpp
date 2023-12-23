@@ -1,5 +1,6 @@
 #include<cstdio>
 #include<algorithm>
+#include<vector>
 using namespace std;
 typedef long long ll;
 const ll P=1e9+7;
@@ -10,6 +11,10 @@ template<int m,int n> struct matrix
     matrix(int x=0)
     {
         for(int i=0;i<m;++i) for(int j=0;j<n;++j) a[i][j]=(x==1&&i==j);
+    }
+    matrix(vector<vector<ll>> _a)
+    {
+        for(int i=0;i<m;++i) for(int j=0;j<n;++j) a[i][j]=_a[i][j]%P;
     }
     const int *operator[](size_t x) const {return a[x];}
     int *operator[](size_t x) {return a[x];}

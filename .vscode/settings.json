@@ -6,6 +6,9 @@
     "window.commandCenter": true,
     "vscode-edge-devtools.webhint": false,
     "editor.cursorSmoothCaretAnimation": "on",
+    "[cpp]": {
+        "editor.wordBasedSuggestions": "off"
+    },
     "files.associations": {
         "iostream": "cpp",
         "array": "cpp",
@@ -117,5 +120,6 @@
     "terminal.integrated.mouseWheelScrollSensitivity": 0.5,
     "terminal.integrated.smoothScrolling": true,
     "editor.colorDecoratorsLimit": 10,
-    "C_Cpp.default.compilerPath": "C:\\Program Files\\mingw64\\bin\\g++.exe"
+    "C_Cpp.default.compilerPath": "C:\\Program Files\\mingw64\\bin\\g++.exe",
+    "editor.wordBasedSuggestions": "off"
 }
