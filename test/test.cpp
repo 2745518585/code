@@ -1,132 +1,199 @@
 #include<cstdio>
 #include<algorithm>
-#include<vector>
+#include<cmath>
+#include<map>
 using namespace std;
-typedef long long ll;
-const int N=1000001,M=4;
-const ll P=1000000007;
-template<int m,int n> struct matrix
+typedef long double ld;
+const ld eps=1e-12,pi=acos(-1.0);
+const int N=1000001;
+int dcmp(ld x)
 {
-    int a[m][n];
-    matrix(int x=0)
+    if(fabs(x)<eps) return 0;
+    if(x>0) return 1;
+    else return -1;
+}
+
+struct pt;
+struct vec;
+
+struct pt
+{
+    ld x=0,y=0;
+    pt();
+    pt(const ld &_x,const ld &_y);
+    explicit pt(const vec &p);
+    void input()
     {
-        for(int i=0;i<m;++i) for(int j=0;j<n;++j) a[i][j]=(x==1&&i==j);
+        scanf("%Lf%Lf",&x,&y);
     }
-    matrix(vector<vector<ll>> _a)
-    {
-        for(int i=0;i<m;++i) for(int j=0;j<n;++j) a[i][j]=_a[i][j]%P;
-    }
-    const int *operator[](size_t x) const {return a[x];}
-    int *operator[](size_t x) {return a[x];}
 };
-matrix<2,2> R({{1,1},{1,0}});
-template<int m,int n,int q> matrix<m,n> operator*(const matrix<m,q> &a,const matrix<q,n> &b)
+struct vec
 {
-    matrix<m,n> c;
-    for(int i=0;i<m;++i) for(int j=0;j<n;++j) for(int k=0;k<q;++k) c[i][j]=(c[i][j]+(ll)a[i][k]*b[k][j]%P)%P;
-    return c;
-}
-template<int n> matrix<n,n> qpow(matrix<n,n> a,ll b)
-{
-    matrix<n,n> x(1),y=a;
-    while(b)
+    ld x=0,y=0;
+    vec();
+    vec(const ld &_x,const ld &_y);
+    vec(const pt &p);
+    void input()
     {
-        if(b&1) x=x*y;
-        y=y*y;
-        b>>=1;
+        scanf("%Lf%Lf",&x,&y);
     }
-    return x;
-}
-int n,m;
-ll a[N];
-struct tree
-{
-    int l,r;
-    matrix<1,2> s;
-    matrix<2,2> k;
-}T[N<<2];
-void pushup(int x)
-{
-    T[x].s[0][0]=(T[x<<1].s[0][0]+T[x<<1|1].s[0][0])%P;
-    T[x].s[0][1]=(T[x<<1].s[0][1]+T[x<<1|1].s[0][1])%P;
-}
-void pushdown(int x)
-{
-    if(T[x].k[0][0]==1&&T[x].k[0][1]==0&&T[x].k[1][0]==0&&T[x].k[1][1]==1) return;
-    T[x<<1].s=T[x<<1].s*T[x].k;
-    T[x<<1].k=T[x<<1].k*T[x].k;
-    T[x<<1|1].s=T[x<<1|1].s*T[x].k;
-    T[x<<1|1].k=T[x<<1|1].k*T[x].k;
-    T[x].k=matrix<2,2>(1);
-}
-void build(int x,int l,int r)
-{
-    T[x].l=l;
-    T[x].r=r;
-    T[x].k=matrix<2,2>(1);
-    if(l==r)
+    ld len() const {return sqrtl(x*x+y*y);}
+    ld len2() const {return x*x+y*y;}
+    vec turn(const ld &b) const
     {
-        T[x].s=matrix<1,2>({{1,0}});
-        T[x].s=T[x].s*qpow(R,a[l]-1);
-        return;
+        return vec(x*cos(b)-y*sin(b),y*cos(b)+x*sin(b));
     }
-    int z=l+r>>1;
-    build(x<<1,l,z);
-    build(x<<1|1,z+1,r);
-    pushup(x);
-}
-void add(int x,int l,int r,matrix<2,2> k)
-{
-    if(T[x].l>=l&&T[x].r<=r)
+    vec tolen(const ld &p) const
     {
-        T[x].s=T[x].s*k;
-        T[x].k=T[x].k*k;
-        return;
+        return vec(x/len()*p,y/len()*p);
     }
-    pushdown(x);
-    int z=T[x].l+T[x].r>>1;
-    if(l<=z) add(x<<1,l,r,k);
-    if(r>z) add(x<<1|1,l,r,k);
-    pushup(x);
-}
-ll sum(int x,int l,int r)
-{
-    if(T[x].l>=l&&T[x].r<=r)
+    vec resize(ld p)
     {
-        return T[x].s[0][0];
+        p/=len();
+        x*=p,y*=p;
+        return *this;
     }
-    pushdown(x);
-    int z=T[x].l+T[x].r>>1;
-    ll s=0;
-    if(l<=z) s=(s+sum(x<<1,l,r))%P;
-    if(r>z) s=(s+sum(x<<1|1,l,r))%P;
-    return s;
+};
+
+pt::pt() {}
+pt::pt(const ld &_x,const ld &_y):x(_x),y(_y) {};
+pt::pt(const vec &p):x(p.x),y(p.y) {}
+vec::vec() {}
+vec::vec(const ld &_x,const ld &_y):x(_x),y(_y) {};
+vec::vec(const pt &p):x(p.x),y(p.y) {}
+
+pt operator+(const pt &a,const vec &b) {return pt(a.x+b.x,a.y+b.y);}
+vec operator+(const vec &a,const vec &b) {return vec(a.x+b.x,a.y+b.y);}
+vec operator-(const pt &a,const pt &b) {return vec(a.x-b.x,a.y-b.y);}
+pt operator-(const pt &a,const vec &b) {return pt(a.x-b.x,a.y-b.y);}
+vec operator-(const vec &a,const vec &b) {return vec(a.x-b.x,a.y-b.y);}
+vec operator*(const vec &a,ld b) {return vec(a.x*b,a.y*b);}
+vec operator*(ld a,const vec &b) {return vec(b.x*a,b.y*a);}
+vec operator/(const vec &a,ld b) {return vec(a.x/b,a.y/b);}
+bool operator==(const pt &a,const pt &b) {return dcmp(a.x-b.x)==0&&dcmp(a.y-b.y)==0;}
+bool operator==(const vec &a,const vec &b) {return dcmp(a.x-b.x)==0&&dcmp(a.y-b.y)==0;}
+ld operator*(const vec &a,const vec &b) {return a.x*b.x+a.y*b.y;}
+ld operator^(const vec &a,const vec &b) {return a.x*b.y-a.y*b.x;}
+
+struct seg
+{
+    pt a,b;
+    seg() {}
+    seg(const pt &_a,const pt &_b):a(_a),b(_b) {}
+    seg(const pt &_a,const vec &_b):a(_a),b(_a+_b) {}
+    void input() {a.input(),b.input();}
+    bool inc(const pt &x) const
+    {
+        return dcmp((a-x)^(b-x))==0&&dcmp((a-x)*(b-x))<=0;
+    }
+};
+struct lin
+{
+    pt a;
+    vec t;
+    lin() {}
+    lin(const pt &_a,const vec &_t):a(_a),t(_t) {}
+    lin(const pt &_a,const pt &_b):a(_a),t(_b-_a) {}
+    lin(const seg &p):a(p.a),t(p.b-p.a) {}
+    void input() {a.input(),t.input();}
+    void input_seg() {a.input(),t.input();t=t-a;}
+    bool inc(const pt &x) const
+    {
+        return dcmp((a-x)^t)==0;
+    }
+    bool onleft(const pt &x) const
+    {
+        return dcmp((x-a)^t)<0;
+    }
+    bool onright(const pt &x) const
+    {
+        return dcmp((x-a)^t)>0;
+    }
+};
+
+ld angle(const vec &a,const vec &b)
+{
+    return acos((a*b)/a.len()/b.len());
+}
+bool ifinter(const seg &a,const seg &b)
+{
+    if(dcmp((a.b-a.a)^(b.b-b.a))==0) return false;
+    return dcmp(max(a.a.x,a.b.x)-min(b.a.x,b.b.x))>=0&&dcmp(max(b.a.x,b.b.x)-min(a.a.x,a.b.x))>=0
+    &&dcmp(max(a.a.y,a.b.y)-min(b.a.y,b.b.y))>=0&&dcmp(max(b.a.y,b.b.y)-min(a.a.y,a.b.y))>=0
+    &&dcmp(((b.a-a.a)^(b.b-a.a))*((b.a-a.b)^(b.b-a.b)))<=0&&dcmp(((a.a-b.a)^(a.b-b.a))*((a.a-b.b)^(a.b-b.b)))<=0;
+}
+pt inter(const lin &a,const lin &b)
+{
+    if(dcmp(a.t^b.t)==0) return pt(0,0);
+    return a.a+((b.t^(a.a-b.a))/(a.t^b.t))*a.t;
+}
+ld dis(const pt &a,const pt &b)
+{
+    return (a-b).len();
+}
+ld dis2(const pt &a,const pt &b)
+{
+    return (a-b).len2();
+}
+ld dis(const pt &a,const lin &b)
+{
+    if(a==b.a||b.t==pt(0,0)) return 0;
+    return dis(a,b.a)*fabs(sin(angle(a-b.a,b.t)));
+}
+ld dis(const pt &a,const seg &b)
+{
+    if(b.inc(inter(lin(a,(b.b-b.a).turn(pi/2)),b))) return dis(a,lin(b));
+    else return min(dis(a,b.a),dis(a,b.b));
+}
+pt hangf(const pt &a,const lin &b)
+{
+    return inter(lin(a,b.t.turn(pi/2)),b);
+}
+pt sym(const pt &a,const lin &b)
+{
+    return pt(hangf(a,b)*2-a);
+}
+
+ld x,y,z,a,b,c;
+ld solve(const ld &a,const ld &b,const ld &c)
+{
+    printf("%.6Lf %.6Lf %.6Lf\n",a,b,c);
+    return b*(a*a+b*b-c*c)/(a*b*2);
 }
 int main()
 {
-    scanf("%d%d",&n,&m);
-    for(int i=1;i<=n;++i)
+    int T;
+    scanf("%d",&T);
+    while(T--)
     {
-        scanf("%lld",&a[i]);
-    }
-    build(1,1,n);
-    for(int i=1;i<=m;++i)
-    {
-        int z;
-        scanf("%d",&z);
-        if(z==1)
+        scanf("%Lf%Lf%Lf%Lf%Lf%Lf",&x,&y,&z,&a,&b,&c);
+        ld p=acos((a*a+b*b-c*c)/(a*b*2));
+        pt A(b*cos(p),b*sin(p)),B(a,0),C(0,0);
+        printf("%.6Lf %.6Lf %.6Lf %.6Lf %.6Lf %.6Lf\n",A.x,A.y,B.x,B.y,C.x,C.y);
+        ld t1=x*((x*x+c*c-y*y)/(x*c*2)),t2=x*((x*x+b*b-z*z)/(x*b*2));
+        printf("%.6Lf %.6Lf\n",t1,t2);
+        pt O=inter(lin(A+(B-A).tolen(t1),(B-A).turn(pi/2)),lin(A+(C-A).tolen(t2),(C-A).turn(pi/2)));
+        printf("%.6Lf %.6Lf\n",O.x,O.y);
+        pt S=inter(seg(B,pt((A+C)/2)),seg(C,pt((A+B)/2)));
+        printf("%.6Lf %.6Lf\n",S.x,S.y);
+        ld d=sqrtl(x*x-dis2(O,A)+dis2(O,S));
+        printf("%.6Lf\n",d);
+        if(dis(A,S)>x||dis(B,S)>y||dis(C,S)>z)
         {
-            int x,y;
-            ll k;
-            scanf("%d%d%lld",&x,&y,&k);
-            add(1,x,y,qpow(R,k));
+            if(x<=y&&x<=z)
+            {
+                if(x*x+c*c>y*y&&x*x+b*b>z*z)
+                {
+                    printf("%.12Lf %.12Lf %.12Lf\n",-x,-solve(dis(A,S),c,dis(B,S))-x,-solve(dis(A,S),b,dis(C,S))-x);
+                    continue;
+                }
+                else if(x*x+b*b>z*z)
+                {
+                    printf("%.12Lf %.12Lf %.12Lf\n",-x,-y,-dis(C,S));
+                }
+            }
         }
-        else if(z==2)
-        {
-            int x,y;
-            scanf("%d%d",&x,&y);
-            printf("%lld\n",sum(1,x,y)%P);
-        }
+        printf("%.12Lf %.12Lf %.12Lf\n",-solve(d,x,dis(A,S)),-solve(d,y,dis(B,S)),-solve(d,z,dis(C,S)));
     }
     return 0;
 }

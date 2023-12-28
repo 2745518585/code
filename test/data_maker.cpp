@@ -5,17 +5,23 @@ using namespace orita;
 int main(int argc,char **argv)
 {
     register_rnd(argc,argv);
-    int n=rnd(2,5),m=rnd(1,5);
-    printf("%d %d\n",n,m);
+    int n=rnd(1e5,1e5),m=rnd(1e5,1e5),q=rnd(1e5,1e5);
+    cout<<n<<"\n";
     for(int i=1;i<=n;++i)
     {
-        printf("%d %d\n",rnd(1,2),rnd(1,2));
+        cout<<(rnd(0,1)?rnd('a','z'):rnd('A','Z'));
     }
-    auto a=rnd_tree(n);
-    for(auto i:a) printf("%d %d\n",i.first,i.second);
+    cout<<"\n";
+    cout<<m<<"\n";
     for(int i=1;i<=m;++i)
     {
-        printf("%d %d\n",rnd(1,n),rnd(1,n));
+        cout<<rnd(1,n)<<" ";
+    }
+    cout<<"\n";
+    cout<<q<<"\n";
+    for(int i=1;i<=q;++i)
+    {
+        cout<<rnd(1,n)<<" "<<rnd_pair<_LOE>(1,n)<<"\n";
     }
     return 0;
 }
