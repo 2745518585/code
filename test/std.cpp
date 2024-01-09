@@ -1,7 +1,7 @@
-#include<bits/stdc++.h>
+#include<cstdio>
 using namespace std;
 int main()
 {
-    printf("0");
+    printf("NO");
     return 0;
 }

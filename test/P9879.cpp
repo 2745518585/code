@@ -85,7 +85,7 @@ int main()
             scanf("%s",b[i]+1);
             for(int j=1;j<=n;++j)
             {
-                if((i+j)%2&&b[i][j]!='?') b[i][j]='0'+'1'-b[i][j];
+                if((i+j)%2&&b[i][j]!='?') b[i][j]='W'+'B'-b[i][j];
             }
         }
         s1=(m-1)*(n-1)*2+1,s2=(m-1)*(n-1)*2+2;
@@ -96,12 +96,12 @@ int main()
         {
             for(int j=1;j<=n-1;++j)
             {
-                if(b[i][j]!='1'&&b[i+1][j]!='1'&&b[i][j+1]!='1'&&b[i+1][j+1]!='1')
+                if(b[i][j]!='B'&&b[i+1][j]!='B'&&b[i][j+1]!='B'&&b[i+1][j+1]!='B')
                 {
                     road(s1,sum(i,j),1);
                     ++q;
                 }
-                if(b[i][j]!='0'&&b[i+1][j]!='0'&&b[i][j+1]!='0'&&b[i+1][j+1]!='0')
+                if(b[i][j]!='W'&&b[i+1][j]!='W'&&b[i][j+1]!='W'&&b[i+1][j+1]!='W')
                 {
                     road(sum(i,j)+(m-1)*(n-1),s2,1);
                     ++q;
@@ -119,6 +119,42 @@ int main()
             r+=dfs(s1,1e9);
         }
         printf("%d\n",q-r);
+        for(int i=1;i<=m-1;++i)
+        {
+            for(int j=1;j<=n-1;++j)
+            {
+                if((f[sum(i,j)]!=0)==(f[s1]!=0))
+                {
+                    for(int k=t[sum(i,j)];k!=0;k=a[k].q)
+                    {
+                        if(a[k].m==s1)
+                        {
+                            b[i][j]=b[i+1][j]=b[i][j+1]=b[i+1][j+1]='W';
+                        }
+                    }
+                }
+                if((f[sum(i,j)+(m-1)*(n-1)]!=0)==(f[s2]!=0))
+                {
+                    for(int k=t[sum(i,j)+(m-1)*(n-1)];k!=0;k=a[k].q)
+                    {
+                        if(a[k].m==s2)
+                        {
+                            b[i][j]=b[i+1][j]=b[i][j+1]=b[i+1][j+1]='B';
+                        }
+                    }
+                }
+            }
+        }
+        for(int i=1;i<=m;++i)
+        {
+            for(int j=1;j<=n;++j)
+            {
+                if(b[i][j]=='?') b[i][j]='W';
+                if((i+j)%2) printf("%c",'W'+'B'-b[i][j]);
+                else printf("%c",b[i][j]);
+            }
+            printf("\n");
+        }
     }
     return 0;
 }
