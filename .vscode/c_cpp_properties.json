@@ -3,6 +3,7 @@
         {
             "name": "Win32",
             "includePath": [
+                "${workspaceFolder}/**",
                 "D:\\Orita\\build\\bin\\"
             ],
             "defines": [
@@ -10,11 +11,10 @@
                 "UNICODE",
                 "_UNICODE"
             ],
+            "windowsSdkVersion": "10.0.22621.0",
             "cStandard": "c17",
             "cppStandard": "c++20",
-            "intelliSenseMode": "windows-gcc-x64",
-            "compileCommands": "",
-            "compilerPath": "C:\\Program Files\\mingw64\\bin\\g++.exe"
+            "intelliSenseMode": "windows-msvc-x64"
         }
     ],
     "version": 4
