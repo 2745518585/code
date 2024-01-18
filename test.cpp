@@ -1,157 +1,82 @@
 #include<bits/stdc++.h>
 using namespace std;
-namespace IO {
-#define iL (1 << 20)
-char ibuf[iL], *iS = ibuf + iL, *iT = ibuf + iL;
-#define gc() ((iS == iT) ? (iT = (iS = ibuf) + fread(ibuf, 1, iL, stdin), iS == iT ? EOF : *iS ++) : *iS ++)
-template<class T> inline void read(T &x) {
-  x = 0;int f = 0;char ch = gc();
-  for (; !isdigit(ch); f |= ch == '-', ch = gc());
-  for (; isdigit(ch); x = (x << 1) + (x << 3) + (ch ^ 48), ch = gc());
-  x = (f == 1 ? ~ x + 1 : x);
-}
-template<class T, class... Args> inline void read(T &x, Args&... args) { read(x), read(args...); }
-template<class T> inline void readch(T &x) { char ch = gc(); for (; !isalpha(ch); ch = gc()); x = ch; }
-char Out[iL], *iter = Out;
-#define flush() fwrite(Out, 1, iter - Out, stdout), iter = Out
-template<class T> inline void write(T x, char ch = '\n') {
-  T l, c[35];
-  if (x < 0) *iter ++ = '-', x = ~ x + 1;
-  for (l = 0; !l || x; c[l] = x % 10, l++, x /= 10);
-  for (; l; -- l, *iter ++ = c[l] + '0');*iter ++ = ch;
-  flush();
-}
-template<class T, class... Args> inline void write(T x, Args... args) { write(x, ' '), write(args...); }
-} // IO
-using namespace IO;
 typedef long long ll;
-const int N=1000001,M=1001;
-const ll inf=1000000000000000000;
-int n,h[N];
-ll b[N],c[N],d[N],e[M][M],f[N],g[N];
-vector<int> a[N];
-ll gcd(ll a,ll b)
+inline char gc()
 {
-    if(b==0) return a;
-    return gcd(b,a%b);
+    static char buf[100000],*p1=buf,*p2=buf;
+    return p1==p2&&(p2=(p1=buf)+fread(buf,1,100000,stdin),p1==p2)?EOF:*p1++;
 }
-void dfs0(int x,int fa)
+template<typename T> inline void read(T &x)
 {
-    f[x]=b[x];
+    T u=1,t=0;char c=gc();
+    while(c<'0'||c>'9') {if(c=='-') u=-1; c=gc();}
+    while(c>='0'&&c<='9') t*=10,t+=c-'0',c=gc();
+    x=u*t;return;
+}
+template<typename T,typename ...O> inline void read(T &x,O &...o) {read(x),read(o...);}
+template<typename T> inline void print(T x)
+{
+    if(x==0) return putchar('0'),void();
+    if(x<0) putchar('-'),x=-x;
+    int c[129]={0},k=0;
+    while(x) c[++k]=x%10,x/=10;
+    for(int i=k;i;--i) putchar(c[i]+'0');
+}
+template<typename T,typename ...O> inline void print(T x,O ...o) {print(x),putchar(' '),print(o...);}
+const int N=8001;
+int n,q,fa[N];
+vector<pair<int,int>> a[N];
+struct str
+{
+    int x,y;
+    ll w;
+    str() {}
+    str(int x,int y,ll w):x(x),y(y),w(w) {}
+}b[N*N/2];
+int find(int x)
+{
+    if(fa[x]==x) return x;
+    return fa[x]=find(fa[x]);
+}
+void dfs(int x,int fa,int rt,ll w)
+{
+    if(rt<x) b[++q]=str(rt,x,abs(w));
     for(auto i:a[x])
     {
-        if(i==fa) continue;
-        dfs0(i,x);
-        f[x]=gcd(f[x],f[i]);
+        if(i.first==fa) continue;
+        dfs(i.first,x,rt,w+i.second);
     }
-}
-pair<ll,int> dfs(int x,int fa,ll w)
-{
-    // printf(" %d %lld %lld\n",x,f[x],w);
-    pair<ll,int> s=make_pair(0,0);
-    int z=0;
-    for(int i=a[x].size()-1;i>=0;--i)
-    {
-        if(a[x][i]==fa) continue;
-        g[a[x][i]]=gcd(f[z],g[z]);
-        z=a[x][i];
-    }
-    ll p=w;
-    for(auto i:a[x])
-    {
-        if(i==fa) continue;
-        s=max(s,dfs(i,x,gcd(gcd(p,g[i]),abs(b[x]-b[i]))));
-        p=gcd(p,f[i]);
-    }
-    if(gcd(w,p)==0) s=max(s,make_pair(b[x]+inf,x));
-    else s=max(s,make_pair(gcd(w,p),x));
-    return s;
-}
-pair<ll,pair<int,int>> solve(int x)
-{
-    // printf("%d %d\n",x,b[x]);
-    pair<ll,pair<int,int>> s=make_pair(0,make_pair(0,0));
-    int q=0;
-    dfs0(x,0);
-    for(auto i:a[x])
-    {
-        auto z=dfs(i,x,abs(b[x]-b[i]));
-        c[++q]=z.first;
-        h[q]=z.second;
-        // printf("%d %lld\n",i,c[q]);
-        d[q]=f[i];
-    }
-    for(int i=1;i<=q;++i)
-    {
-        e[i][i]=d[i];
-        for(int j=i+1;j<=q;++j)
-        {
-            e[i][j]=gcd(e[i][j-1],d[j]);
-        }
-    }
-    for(int i=1;i<=q;++i)
-    {
-        ll z=gcd(c[i],gcd(e[1][i-1],e[i+1][q]));
-        if(z==0) z=b[x]+inf;
-        s=max(s,make_pair(z,make_pair(x,h[i])));
-        for(int j=i+1;j<=q;++j)
-        {
-            ll z=gcd(gcd(c[i],c[j]),gcd(e[1][i-1],gcd(e[i+1][j-1],e[j+1][q])));
-            if(z==0) z=b[x]+inf;
-            s=max(s,make_pair(z,make_pair(h[i],h[j])));
-        }
-    }
-    return s;
-}
-pair<ll,pair<int,int>> check(ll x)
-{
-    for(int i=1;i<=n;++i)
-    {
-        if(b[i]%x!=0) return solve(i);
-    }
-    return make_pair(0,make_pair(0,0));
 }
 int main()
 {
-    freopen("data.in","r",stdin);
-    int id;
-    read(n,id);
-    for(int i=1;i<=n;++i) read(b[i]);
+    read(n);
     for(int i=1;i<=n-1;++i)
     {
-        int x,y;
-        read(x,y);
-        a[x].push_back(y);
-        a[y].push_back(x);
+        int x,y,w;
+        read(x,y,w);
+        a[x].push_back(make_pair(y,w));
+        a[y].push_back(make_pair(x,w));
     }
+    for(int i=1;i<=n;++i) dfs(i,0,i,0);
+    sort(b+1,b+q+1,[](const str &a,const str &b)
+    {
+        return a.w<b.w;
+    });
+    for(int i=1;i<=n;++i) fa[i]=i;
     int p=0;
-    for(int i=1;i<=n;++i)
+    ll s=0;
+    for(int i=1;i<=q;++i)
     {
-        if(b[i]!=0)
+        int x=find(b[i].x),y=find(b[i].y);
+        if(x!=y)
         {
-            p=i;
-            break;
+            fa[x]=y;
+            s+=b[i].w;
+            ++p;
+            printf("%d %d %d\n",b[i].x,b[i].y,b[i].w);
+            if(p==n-1) break;
         }
     }
-    if(p==0)
-    {
-        write(inf);
-        write(1,1,inf);
-        return 0;
-    }
-    pair<ll,pair<int,int>> s=solve(p);
-    ll z=b[p];
-    for(ll i=2;i*i<=b[p];++i)
-    {
-        if(z%i==0)
-        {
-            ll t=1;
-            while(z%i==0) z/=i,t*=i;
-            s=max(s,check(t));
-        }
-    }
-    if(z>0) s=max(s,check(z));
-    write(s.first);
-    write(s.second.first,s.second.second,(s.first-b[s.second.first]%s.first)%s.first);
+    printf("%lld",s);
     return 0;
 }

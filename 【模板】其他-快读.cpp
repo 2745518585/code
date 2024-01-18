@@ -12,7 +12,7 @@ template<typename T> inline void read(T &x)
     while(c>='0'&&c<='9') t*=10,t+=c-'0',c=gc();
     x=u*t;return;
 }
-template<typename T,typename ...O> inline void read(T &x,O ...o) {read(x),read(o...);}
+template<typename T,typename ...O> inline void read(T &x,O &...o) {read(x),read(o...);}
 template<typename T> inline void print(T x)
 {
     if(x==0) return putchar('0'),void();
