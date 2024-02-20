@@ -1,41 +1,68 @@
-#include<bits/stdc++.h>
-typedef std::pair<int,int> pii;
-const int N=1e5+3;
-int n,m,M,vis[N],ord[N],dfc,p[N],siz[N],dp[N],dpc[N],ans,ansc;
-std::vector<int>g[N],g1[N];
-std::set<pii>t;
-void Dfs1(int u){
-	vis[u]=1;
-	for(int v:g[u])if(!vis[v])Dfs1(v);
-	ord[++dfc]=u;
+#include<cstdio>
+#include<algorithm>
+#include<cstring>
+#include<queue>
+using namespace std;
+const int N=1000001,M=30;
+int n,las=1,tot=1,f[N<<1],l[N<<1];
+char b[N];
+struct tree
+{
+    int s[M],l,f;
+}a[N<<1];
+void add(int c)
+{
+    int x=las,nx=las=++tot;
+    f[tot]=1;
+    a[nx].l=a[x].l+1;
+    while(x!=0&&a[x].s[c]==0)
+    {
+        a[x].s[c]=nx;
+        x=a[x].f;
+    }
+    if(x==0) a[nx].f=1;
+    else
+    {
+        int y=a[x].s[c];
+        if(a[x].l+1==a[y].l) a[nx].f=y;
+        else
+        {
+            int ny=++tot;
+            a[ny]=a[y];
+            a[ny].l=a[x].l+1;
+            a[y].f=a[nx].f=ny;
+            while(x!=0&&a[x].s[c]==y)
+            {
+                a[x].s[c]=ny;
+                x=a[x].f;
+            }
+        }
+    }
 }
-void Dfs2(int u,int r){
-	p[u]=r,++siz[r],++dp[r];
-	for(int v:g1[u])if(!p[v])Dfs2(v,r);
-}
-int main(){
-	int u,v;
-	scanf("%d%d%d",&n,&m,&M);
-	for(;m--;)scanf("%d%d",&u,&v),g[u].push_back(v),g1[v].push_back(u);
-	for(u=1;u<=n;u++)if(!vis[u])Dfs1(u);
-	for(int i=n;i;i--)if(!p[u=ord[i]])Dfs2(u,u);
-	for(u=1;u<=n;u++)dpc[u]=1;
-	for(int i=1;i<=n;i++){
-		u=ord[i];
-		for(int v:g[u])if(p[u]!=p[v]&&!t.count(pii(p[u],p[v]))){
-			t.insert(pii(p[u],p[v]));
-			if(dp[p[v]]+siz[p[u]]==dp[p[u]])
-				dpc[p[u]]=(dpc[p[u]]+dpc[p[v]])%M;
-			if(dp[p[v]]+siz[p[u]]>dp[p[u]])
-				dp[p[u]]=dp[p[v]]+siz[p[u]],dpc[p[u]]=dpc[p[v]];
-		}
-	}
-	for(u=1;u<=n;u++)if(u==p[u]){
-		if(dp[p[u]]==ans)
-			ansc=(ansc+dpc[p[u]])%M;
-		if(dp[p[u]]>ans)
-			ans=dp[p[u]],ansc=dpc[p[u]];
-	}
-	printf("%d\n%d\n",ans,ansc);
-	return 0;
+int main()
+{
+    scanf("%s",b+1);
+    n=strlen(b+1);
+    for(int i=1;i<=n;++i) add(b[i]-'a'+1);
+    for(int i=2;i<=tot;++i) ++l[a[i].f];
+    queue<int> Q;
+    for(int i=1;i<=tot;++i)
+    {
+        if(l[i]==0) Q.push(i);
+    }
+    while(!Q.empty())
+    {
+        int k=Q.front();
+        Q.pop();
+        f[a[k].f]+=f[k];
+        --l[a[k].f];
+        if(l[a[k].f]==0) Q.push(a[k].f);
+    }
+    int s=0;
+    for(int i=1;i<=tot;++i)
+    {
+        if(f[i]!=1) s=max(s,f[i]*a[i].l);
+    }
+    printf("%d",s);
+    return 0;
 }

@@ -1,190 +1,197 @@
-#pragma GCC optimize("Ofast","inline")
-#include<bits/stdc++.h>
-#define mk(x,y) (pt){x,y}
-#define seg(x,y) (line){x,y}
-#define db double
+#include<cstdio>
+#include<algorithm>
+#include<cmath>
 using namespace std;
-const int N=2e5+50,M=1e7;
-const db eps=1e-4,reps=1e-5,pi=acos(-1);
+typedef long double ld;
+const ld eps=1e-12,pi=acos(-1.0);
+const int N=1000001;
+int dcmp(ld x)
+{
+    if(fabs(x)<eps) return 0;
+    if(x>0) return 1;
+    else return -1;
+}
+
+struct pt;
+struct vec;
 
 struct pt
 {
-    db x,y;
-    
-    friend bool operator==(pt a,pt b){return fabs(a.x-b.x)<=reps&&fabs(a.y-b.y)<=reps;}
-    friend bool operator!=(pt a,pt b){return fabs(a.x-b.x)>reps||fabs(a.y-b.y)>reps;}
-    friend pt operator+(pt a,pt b){return mk(a.x+b.x,a.y+b.y);}
-    friend pt operator-(pt a,pt b){return mk(a.x-b.x,a.y-b.y);}
-    friend pt operator*(pt a,db b){return mk(a.x*b,a.y*b);}
-    db dis(){return sqrt(x*x+y*y);}
-    friend db dis(pt a,pt b){return sqrt((a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y));}
-    pt rotate(db t){return mk(x*cos(t)-y*sin(t),y*cos(t)+x*sin(t));};
-    friend pt tolen(pt a,db x){return a*(x/a.dis());}
-}pos;
-
-db dot(pt a,pt b){return a.x*b.x+a.y*b.y;}
-db cross(pt a,pt b){return a.x*b.y-a.y*b.x;}
-
-struct line
-{
-    pt a,b;
-    
-    pt vec(){return b-a;}
-}a[N];
-
-pt intersect(line a,line b)
-{
-    db s1=cross(b.a-a.a,b.b-a.a),s2=cross(b.b-a.b,b.a-a.b);
-    return a.a+a.vec()*(s1/(s1+s2));
-}
-
-pt perpend(line a,pt b)
-{
-    return intersect(a,seg(b,b+a.vec().rotate(pi/2)));
-}
-
-int inter(db r,line a,pt&A,pt&B)
-{
-    pt p=perpend(a,pos);db d=dis(p,pos);
-    if(d>r)return 0;
-    A=p+tolen(a.vec(),sqrt(r*r-d*d))-pos;
-    B=p-tolen(a.vec(),sqrt(r*r-d*d))-pos;
-    return 1;
-}
-
-int intersect(db r,line a,db&L,db&R)
-{
-    pt A,B;
-    if(!inter(r,a,A,B))return 0;
-    L=atan2(A.x,A.y);R=atan2(B.x,B.y);
-    if(L>R)swap(L,R);if(R-L>=pi)L+=pi*2,swap(L,R);
-    L*=M,R*=M;
-    return 1;
-}
-
-int n,k,id;
-
-struct node
-{
-    int l,r;
-    
-    int chk(node x)
+    ld x=0,y=0;
+    pt();
+    pt(const ld &_x,const ld &_y);
+    explicit pt(const vec &p);
+    void input()
     {
-        return max(x.l,l)<=min(x.r,r);
+        scanf("%Lf%Lf",&x,&y);
     }
-}s[N];
-
-db l[N],r[N],t[N];
-int tmp[N],val[N];
-vector<int>in[N];
-
-void insert(int x,int d,int n)
+};
+struct vec
 {
-    for(int i=x;i<=n;i+=(i&(-i)))val[i]+=d;
-}
-
-int find(int x)
-{
-    int ans=0;
-    for(int i=x;i;i-=(i&(-i)))ans+=val[i];
-    return ans;
-}
-
-struct ga
-{
-    pt x;int id;
-    
-    friend bool operator<(ga a,ga b)
+    ld x=0,y=0;
+    vec();
+    vec(const ld &_x,const ld &_y);
+    vec(const pt &p);
+    void input()
     {
-        return atan2(a.x.x-pos.x,a.x.y-pos.y)<=atan2(b.x.x-pos.x,b.x.y-pos.y);
+        scanf("%Lf%Lf",&x,&y);
     }
-}p[N];
+    ld len() const {return sqrtl(x*x+y*y);}
+};
 
-int check(db l1,db r1,db l2,db r2)
+pt::pt() {}
+pt::pt(const ld &_x,const ld &_y):x(_x),y(_y) {}
+pt::pt(const vec &p):x(p.x),y(p.y) {}
+vec::vec() {}
+vec::vec(const ld &_x,const ld &_y):x(_x),y(_y) {}
+vec::vec(const pt &p):x(p.x),y(p.y) {}
+
+pt operator+(const pt &a,const vec &b) {return pt(a.x+b.x,a.y+b.y);}
+vec operator+(const vec &a,const vec &b) {return vec(a.x+b.x,a.y+b.y);}
+vec operator-(const pt &a,const pt &b) {return vec(a.x-b.x,a.y-b.y);}
+pt operator-(const pt &a,const vec &b) {return pt(a.x-b.x,a.y-b.y);}
+vec operator-(const vec &a,const vec &b) {return vec(a.x-b.x,a.y-b.y);}
+vec operator*(const vec &a,const ld &b) {return vec(a.x*b,a.y*b);}
+vec operator*(const ld &b,const vec &a) {return vec(a.x*b,a.y*b);}
+ld operator*(const vec &a,const vec &b) {return a.x*b.x+a.y*b.y;}
+ld operator^(const vec &a,const vec &b) {return a.x*b.y-a.y*b.x;}
+
+struct lin
 {
-    if(l1>=pi*M&&l2>=pi*M)return 0;
-    
-    if(l1==l2||r1==r2)return 1;
-    if(l1>l2)swap(l1,l2),swap(r1,r2);
-    if(r2>=r1&&l2<=r1)return 1;
-//	if(r1>pi*M)return 0;
-//	l1+=pi*2*M,r1+=pi*2*M;
-//	if(l1==l2||r1==r2)return 1;
-//	if(l1>l2)swap(l1,l2),swap(r1,r2);
-//	if(r2>=r1&&l2<=r1)return 1;
-    return 0;
+    pt a;
+    vec t;
+    lin() {}
+    lin(const pt &_a,const vec _t):a(_a),t(_t) {}
+    void input()
+    {
+        a.input(),t.input();
+    }
+    bool inc(const pt &x)
+    {
+        return dcmp((x-a)^t)==0;
+    }
+    bool onleft(const pt &x)
+    {
+        return dcmp((x-a)^t)<0;
+    }
+    bool onright(const pt &x)
+    {
+        return dcmp((x-a)^t)>0;
+    }
+};
+
+ld angle(const vec &a,const vec &b)
+{
+    return acos((a*b)/a.len()/b.len());
+}
+ld dis(const pt &a,const pt &b)
+{
+    return (a-b).len();
+}
+pt inter(const lin &a,const lin &b)
+{
+    if(dcmp(a.t^b.t)==0) return pt(0,0);
+    return a.a+((b.t^(a.a-b.a))/(a.t^b.t))*a.t;
 }
 
-int chk(db x)
+struct hp
 {
-    int cnt=0,cc=0,c=0;
-    for(int i=1;i<=n;i++)
+    int n;
+    lin *a=NULL;
+    hp() {}
+    hp(int _n):n(_n)
     {
-        if(!intersect(x,a[i],l[cc+1],r[cc+1]))continue;
-        cc++;t[++c]=l[cc];t[++c]=r[cc];
-        if(r[cc]<=pi*M)
+        if(a!=NULL) delete[] a;
+        a=new lin[n+3];
+    }
+    hp(int _n,const lin *_a):n(_n)
+    {
+        if(a!=NULL) delete[] a;
+        a=new lin[n+3];
+        for(int i=1;i<=n;++i) a[i]=_a[i];
+    }
+    void input()
+    {
+        scanf("%d",&n);
+        if(a!=NULL) delete[] a;
+        a=new lin[n+3];
+        for(int i=1;i<=n;++i) a[i].input();
+    }
+    lin &operator[](size_t pos) {return a[pos];}
+    lin operator[](size_t pos) const {return a[pos];}
+    void solve()
+    {
+        lin *b=new lin[n+3];
+        for(int i=1;i<=n;++i) b[i]=a[i];
+        int m=n;
+        sort(b+1,b+m+1,[](const lin &a,const lin &b)
         {
-            t[++c]=l[cc]+pi*2*M;t[++c]=r[cc]+pi*2*M;
-            l[cc+1]=l[cc]+pi*2*M;r[cc+1]=r[cc]+pi*2*M;
-            cc++;
-        }
-    }
-    sort(t+1,t+1+c);
-    for(int i=1;i<=cc;i++)
-    {
-        s[i]=(node){(int)(lower_bound(t+1,t+1+c,l[i])-t),(int)(lower_bound(t+1,t+1+c,r[i])-t)};
-        in[s[i].l].push_back(s[i].r);
-    }
-//	for(int i=1;i<=cc;i++)
-//	for(int j=i+1;j<=cc;j++)
-//	cnt+=check(l[i],r[i],l[j],r[j]);
-//	return cnt>=k;
-    for(int i=1;i<=c;i++)
-    {
-        sort(in[i].begin(),in[i].end());
-        for(auto x:in[i])
+            return atan2(a.t.y,a.t.x)<atan2(b.t.y,b.t.x);
+        });
+        int T=1,R=0;
+        a[++R]=b[1];
+        for(int i=2;i<=m;++i)
         {
-            cnt+=find(c-i+1)-find(c-x);
-            if(t[i]<pi*M)insert(c-x+1,1,c);
+            while(T<=R-1&&!b[i].onleft(inter(a[R-1],a[R]))) --R;
+            while(T<=R-1&&!b[i].onleft(inter(a[T],a[T+1]))) ++T;
+            a[++R]=b[i];
+            if(T<=R-1&&dcmp(a[R].t^a[R-1].t)==0)
+            {
+                if(dcmp((a[R-1].a-a[R].a)^a[R].t)>=0&&dcmp(a[R-1].t*a[R].t)<0)
+                {
+                    n=0;
+                    return;
+                }
+                if(dcmp(a[R-1].t*a[R].t)>0)
+                {
+                    if(dcmp((a[R-1].a-a[R].a)^a[R].t)>0) swap(a[R-1],a[R]);
+                    --R;
+                }
+            }
         }
-        in[i].clear();
+        while(T<=R-1&&!a[T].onleft(inter(a[R-1],a[R]))) --R;
+        n=R-T+1;
+        if(n<=2) n=0;
+        for(int i=1;i<=n;++i) a[i]=a[i+T-1];
+        a[n+1]=a[1];
+        a[n+2]=a[2];
+        delete[] b;
     }
-    for(int i=1;i<=c;i++)val[i]=0;
-    return cnt>=k;
-}
+    ld area()
+    {
+        ld s=0;
+        a[n+1]=a[1];
+        a[n+2]=a[2];
+        for(int i=1;i<=n;++i)
+        {
+            s+=(inter(a[i],a[i+1])^inter(a[i+1],a[i+2]))/2;
+        }
+        return s;
+    }
+};
 
+int m,n;
+lin a[N];
 int main()
 {
-    cerr<<fixed<<setprecision(10);
-    cin>>n>>k>>pos.x>>pos.y>>id;
-    for(int i=1;i<=n;i++)
+    scanf("%d",&m);
+    for(int i=1;i<=m;++i)
     {
-        int k,b;cin>>k>>b;
-        a[i]=seg(mk(.0,b*1.0),mk(100.0,100*k+b*1.0));
-    }
-    db l=0,r=1e15,ans=r;
-    while(r-l>eps)
-    {
-        db mid=(l+r)/2;
-        if(chk(mid))ans=mid,r=mid-eps;
-        else l=mid+eps;
-    }
-    int tot=0;
-    for(int i=1;i<=n;i++)
-    {
-        pt A,B;if(!inter(ans,a[i],A,B))continue;
-        p[++tot]=(ga){A,i};if(A!=B)p[++tot]=(ga){B,i};
-    }
-    sort(p+1,p+1+tot);
-    for(int i=1;i<=tot;i++)
-    {
-        ga la=p[(i-1+tot-1)%tot+1];
-        if(fabs(ans-dis(intersect(a[la.id],a[p[i].id]),pos))<=ans*1e-6)
+        int k;
+        scanf("%d",&k);
+        pt x,y,z;
+        x.input();
+        z=x;
+        for(int j=2;j<=k;++j)
         {
-            cerr<<dis(intersect(a[la.id],a[p[i].id]),pos)<<'\n';
-            cout<<la.id<<' '<<p[i].id;
-            return 0;
+            y.input();
+            a[++n]=lin(x,y-x);
+            x=y;
         }
+        a[++n]=lin(x,z-x);
     }
+    hp x(n,a);
+    x.solve();
+    printf("%.3Lf",x.area());
     return 0;
 }

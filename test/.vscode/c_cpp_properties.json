@@ -4,6 +4,7 @@
             "name": "Win32",
             "includePath": [
                 "${default}",
+                "C:\\Orita\\bin\\",
                 "D:\\Orita\\build\\bin\\"
             ],
             "defines": [
