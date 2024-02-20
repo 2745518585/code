@@ -22,7 +22,7 @@ void FWT_or(ll *a,int u)
 {
     for(int k=1;k*2<=n;k<<=1)
     {
-        for(int i=1;i<=n;i+=k*2)
+        for(int i=0;i<n;i+=k*2)
         {
             for(int j=0;j<k;++j) a[i+j+k]=(a[i+j+k]+a[i+j]*u%P)%P;
         }
@@ -32,7 +32,7 @@ void FWT_and(ll *a,int u)
 {
     for(int k=1;k*2<=n;k<<=1)
     {
-        for(int i=1;i<=n;i+=k*2)
+        for(int i=0;i<n;i+=k*2)
         {
             for(int j=0;j<k;++j) a[i+j]=(a[i+j]+a[i+j+k]*u%P)%P;
         }
@@ -42,7 +42,7 @@ void FWT_xor(ll *a,int u)
 {
     for(int k=1;k*2<=n;k<<=1)
     {
-        for(int i=1;i<=n;i+=k*2)
+        for(int i=0;i<n;i+=k*2)
         {
             for(int j=0;j<k;++j)
             {
@@ -57,21 +57,21 @@ int main()
 {
     scanf("%d",&n);
     n=(1<<n);
-    for(int i=1;i<=n;++i)
+    for(int i=0;i<n;++i)
     {
         scanf("%lld",&a2[i]);
     }
-    for(int i=1;i<=n;++i)
+    for(int i=0;i<n;++i)
     {
         scanf("%lld",&b2[i]);
     }
     auto solve=[&](auto func,ll u)
     {
-        for(int i=1;i<=n;++i) a[i]=a2[i],b[i]=b2[i];
+        for(int i=0;i<n;++i) a[i]=a2[i],b[i]=b2[i];
         func(a,1),func(b,1);
-        for(int i=1;i<=n;++i) c[i]=a[i]*b[i]%P;
+        for(int i=0;i<n;++i) c[i]=a[i]*b[i]%P;
         func(c,u);
-        for(int i=1;i<=n;++i) printf("%lld ",(c[i]%P+P)%P);printf("\n");
+        for(int i=0;i<n;++i) printf("%lld ",(c[i]%P+P)%P);printf("\n");
     };
     solve(FWT_or,-1);
     solve(FWT_and,-1);

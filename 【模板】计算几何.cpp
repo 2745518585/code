@@ -55,10 +55,10 @@ struct vec
 };
 
 pt::pt() {}
-pt::pt(const ld &_x,const ld &_y):x(_x),y(_y) {};
+pt::pt(const ld &_x,const ld &_y):x(_x),y(_y) {}
 pt::pt(const vec &p):x(p.x),y(p.y) {}
 vec::vec() {}
-vec::vec(const ld &_x,const ld &_y):x(_x),y(_y) {};
+vec::vec(const ld &_x,const ld &_y):x(_x),y(_y) {}
 vec::vec(const pt &p):x(p.x),y(p.y) {}
 
 pt operator+(const pt &a,const vec &b) {return pt(a.x+b.x,a.y+b.y);}

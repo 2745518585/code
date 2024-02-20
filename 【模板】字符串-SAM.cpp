@@ -3,13 +3,14 @@
 #include<cstring>
 #include<queue>
 using namespace std;
-const int N=1000001,M=30;
-int n,las=1,tot=1,f[N<<1],l[N<<1];
+typedef long long ll;
+const int N=2000001;
+int n,las=1,tot=1,f[N],l[N];
 char b[N];
 struct tree
 {
-    int s[M],l,f;
-}a[N<<1];
+    int s[26],l,f;
+}a[N];
 void add(int c)
 {
     int x=las,nx=las=++tot;
@@ -43,7 +44,7 @@ int main()
 {
     scanf("%s",b+1);
     n=strlen(b+1);
-    for(int i=1;i<=n;++i) add(b[i]-'a'+1);
+    for(int i=1;i<=n;++i) add(b[i]-'a');
     for(int i=2;i<=tot;++i) ++l[a[i].f];
     queue<int> Q;
     for(int i=1;i<=tot;++i)
@@ -58,11 +59,11 @@ int main()
         --l[a[k].f];
         if(l[a[k].f]==0) Q.push(a[k].f);
     }
-    int s=0;
+    ll s=0;
     for(int i=1;i<=tot;++i)
     {
-        if(f[i]!=1) s=max(s,f[i]*a[i].l);
+        if(f[i]!=1) s=max(s,(ll)f[i]*a[i].l);
     }
-    printf("%d",s);
+    printf("%lld",s);
     return 0;
 }
