@@ -107,7 +107,6 @@ int main()
             {
                 road(S[Top-1],S[Top],0);
                 --Top;
-                z=LCA(b[j],S[Top]);
             }
             t[b[j]]=0;
             if(z!=S[Top])
