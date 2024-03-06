@@ -5,11 +5,14 @@ using namespace orita;
 int main(int argc,char **argv)
 {
     register_rnd(argc,argv);
-    int n=rnd(1,5),m=rnd(1,5),q=rnd(1,5);
-    cout<<n<<" "<<m<<" "<<q<<"\n";
-    for(int i=1;i<=q;++i)
+    int T=2;
+    printf("0 %d\n",T);
+    while(T--)
     {
-        cout<<rnd_pair<_LOE>(1,n)<<" "<<rnd(1,m)<<"\n";
+        int n=2,m=rnd(0,1e9),k=rnd(0,30);
+        printf("%d %d %d\n",n,m,k);
+        for(int i=1;i<=n;++i) printf("%d ",rnd(0,(1<<k)-1));printf("\n");
+        for(int i=1;i<=n;++i) printf("%d ",rnd(0,m));printf("\n");
     }
     return 0;
 }
