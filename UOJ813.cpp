@@ -1,4 +1,3 @@
-#pragma GCC optimize("Ofast","inline")
 #include<cstdio>
 #include<algorithm>
 #include<vector>
@@ -7,7 +6,7 @@ typedef long long ll;
 const int N=21,M=100001;
 const ll P=998244353;
 int n,m,q,b[M][N];
-ll L,a[N][N],c[N][N],d1[N],d2[N],jc[N],ivjc[N];
+ll L,a[N][N],d1[N],d2[N],pa[N][N][N],pd1[N][N],pd2[N][N],jc[N],ivjc[N];
 ll qpow(ll a,ll b)
 {
     ll x=1,y=a;
@@ -113,7 +112,7 @@ struct poly
         }
         return c;
     }
-}f[N],g[N];
+}f[N],pf[N][N],g[N];
 void init()
 {
     jc[0]=1;
@@ -154,77 +153,71 @@ poly sum(const poly &a)
     for(int i=0;i<=a.n;++i) s=s+g[i]*a[i];
     return s;
 }
-void dfs(int x)
-{
-    static int c[N];
-    if(x==0)
-    {
-        ++q;
-        for(int i=1;i<=n;++i) b[q][i]=c[i];
-        return;
-    }
-    for(c[x]=0;c[x]<=x-1;++c[x]) dfs(x-1);
-}
 void check1(int x,int i,int j)
 {
-    if(i==0) d1[j]=max(d1[j],d2[x]-c[j][x]+(j<i));
-    else if(j==0) d2[i]=min(d2[i],d2[x]-c[i][x]-(j<i));
-    else c[j][i]=min(c[j][i],c[j][x]-c[i][x]-(j<i));
+    if(i==0) d1[j]=max(d1[j],d2[x]-a[j][x]+(j<i));
+    else if(j==0) d2[i]=min(d2[i],d2[x]-a[i][x]-(j<i));
+    else a[j][i]=min(a[j][i],a[j][x]-a[i][x]-(j<i));
 }
 void check2(int x,int i,int j)
 {
-    if(i==0) d2[j]=min(d2[j],d1[x]+c[x][j]-(j<i));
-    else if(j==0) d1[i]=max(d1[i],d1[x]+c[x][i]+(j<i));
-    else c[i][j]=min(c[i][j],c[x][j]-c[x][i]-(j<i));
+    if(i==0) d2[j]=min(d2[j],d1[x]+a[x][j]-(j<i));
+    else if(j==0) d1[i]=max(d1[i],d1[x]+a[x][i]+(j<i));
+    else a[i][j]=min(a[i][j],a[x][j]-a[x][i]-(j<i));
 }
 void check3(int x,int i,int j)
 {
-    if(i==0) d2[j]=min(d2[j],d2[x]+c[x][j]);
-    else if(j==0) d1[i]=max(d1[i],d1[x]-c[i][x]);
-    else if(i!=0&&j!=0) c[i][j]=min(c[i][j],c[x][j]+c[i][x]);
+    if(i==0) d2[j]=min(d2[j],d2[x]+a[x][j]);
+    else if(j==0) d1[i]=max(d1[i],d1[x]-a[i][x]);
+    else if(i!=0&&j!=0) a[i][j]=min(a[i][j],a[x][j]+a[i][x]);
 }
-ll solve(int p,int t)
+ll dfs(int x)
 {
-    for(int i=1;i<=n;++i) d1[i]=0,d2[i]=L,f[i]=1;
-    ll w=1;
+    if(d1[x]>d2[x]||a[x][x]<0) return 0;
+    f[x]=sum(f[x]);
+    if(x==1)
+    {
+        return f[1](d2[1]%P)-f[1]((d1[1]-1)%P)%P;
+    }
+    for(int i=1;i<=n;++i) pd1[x][i]=d1[i],pd2[x][i]=d2[i],pf[x][i]=f[i];
     for(int i=1;i<=n;++i)
     {
-        for(int j=1;j<=n;++j) c[i][j]=a[i][j];
+        for(int j=1;j<=n;++j) pa[x][i][j]=a[i][j];
     }
-    for(int i=n;i>=2;--i)
+    ll s=0;
+    for(int t=0;t<=x-1;++t)
     {
-        if((p&(1<<(i-1)))==0)
+        for(int i=1;i<=n;++i) d1[i]=pd1[x][i],d2[i]=pd2[x][i],f[i]=pf[x][i];
+        for(int j=0;j<=x-1;++j)
         {
-            for(int j=0;j<=i-1;++j)
-            {
-                if(j!=b[t][i]) check1(i,b[t][i],j);
-            }
-            for(int j=0;j<=i-1;++j) check3(i,b[t][i],j);
-            if(b[t][i]==0) w=w*sum(f[i])(d2[i]%P)%P;
-            else
-            {
-                f[b[t][i]]=f[b[t][i]]*sum(f[i])(poly({c[b[t][i]][i]%P,1}));
-            }
+            if(j!=t) check1(x,t,j);
         }
+        for(int j=0;j<=x-1;++j) check3(x,t,j);
+        if(t==0) f[x-1]=f[x-1]*f[x](d2[x]%P);
         else
         {
-            for(int j=0;j<=i-1;++j)
-            {
-                if(j!=b[t][i]) check2(i,b[t][i],j);
-            }
-            for(int j=0;j<=i-1;++j) check3(i,j,b[t][i]);
-            if(b[t][i]==0) w=w*sum(f[i])((d1[i]-1)%P)%P;
-            else
-            {
-                f[b[t][i]]=f[b[t][i]]*sum(f[i])(poly({(-c[i][b[t][i]]-1)%P,1}));
-            }
+            f[t]=f[t]*f[x](poly({a[t][x]%P,1}));
         }
-        if(d1[i]>d2[i]||c[i][i]<0) return 0;
+        s=(s+dfs(x-1))%P;
+        for(int i=1;i<=n;++i) a[t][i]=pa[x][t][i],a[i][t]=pa[x][i][t];
     }
-    if(d1[1]>d2[1]||c[1][1]<0) return 0;
-    f[1]=sum(f[1]);
-    if((p&1)==0) return w*f[1](d2[1]%P)%P;
-    else return w*f[1]((d1[1]-1)%P)%P;
+    for(int t=0;t<=x-1;++t)
+    {
+        for(int i=1;i<=n;++i) d1[i]=pd1[x][i],d2[i]=pd2[x][i],f[i]=pf[x][i];
+        for(int j=0;j<=x-1;++j)
+        {
+            if(j!=t) check2(x,t,j);
+        }
+        for(int j=0;j<=x-1;++j) check3(x,j,t);
+        if(t==0) f[x-1]=f[x-1]*f[x]((d1[x]-1)%P);
+        else
+        {
+            f[t]=f[t]*f[x](poly({(-a[x][t]-1)%P,1}));
+        }
+        s=(s-dfs(x-1))%P;
+        for(int i=1;i<=n;++i) a[t][i]=pa[x][t][i],a[i][t]=pa[x][i][t];
+    }
+    return s;
 }
 int popc(int x)
 {
@@ -247,18 +240,7 @@ int main()
         scanf("%d%d%lld",&x,&y,&w);
         a[y][x]=min(a[y][x],w);
     }
-    dfs(n);
-    ll s=0;
-    for(int i=0;i<=(1<<n)-1;++i)
-    {
-        ll w=0;
-        for(int j=1;j<=q;++j)
-        {
-            w=(w+solve(i,j))%P;
-        }
-        if(popc(i)%2==0) s=(s+w)%P;
-        else s=(s-w)%P;
-    }
-    printf("%lld",(s%P+P)%P);
+    for(int i=1;i<=n;++i) d1[i]=0,d2[i]=L,f[i]=1;
+    printf("%lld",(dfs(n)%P+P)%P);
     return 0;
 }
