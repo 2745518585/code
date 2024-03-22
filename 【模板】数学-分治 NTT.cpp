@@ -5,7 +5,7 @@ typedef long long ll;
 const int N=3000001;
 const ll P=998244353;
 int n,m;
-ll a[N],b[N],c[N];
+ll a[N],b[N];
 void exgcd(ll a,ll b,ll &x,ll &y)
 {
     if(b==0) x=1,y=0;
@@ -59,29 +59,41 @@ void NTT(int n,ll *a,int u)
         }
     }
 }
-void mul(ll *a,ll *b,ll *c)
+void mul(int n,ll *a,ll *b)
 {
-    int x=0;
-    while((1<<x)<=n+m) ++x;
-    x=(1<<x);
-    NTT(x,a,1);
-    NTT(x,b,1);
-    for(int i=0;i<=x;++i) c[i]=a[i]*b[i]%P;
-    NTT(x,c,-1);
-    for(int i=0;i<=n+m;++i)
+    NTT(n,a,1);
+    NTT(n,b,1);
+    for(int i=0;i<=n;++i) a[i]=a[i]*b[i]%P;
+    NTT(n,a,-1);
+    for(int i=0;i<=n;++i)
     {
-        c[i]=c[i]*inv(x)%P;
+        a[i]=a[i]*inv(n)%P;
     }
+}
+void solve(int l,int r)
+{
+    if(l==r) return;
+    int z=l+r>>1;
+    solve(l,z);
+    int x=0;
+    while((1<<x)<=r-l+1) ++x;
+    static ll pa[N],pb[N];
+    for(int i=0;i<=(1<<x);++i) pa[i]=pb[i]=0;
+    for(int i=l;i<=z;++i) pa[i-l]=a[i];
+    for(int i=0;i<=r-l+1;++i) pb[i]=b[i];
+    mul(1<<x,pa,pb);
+    for(int i=z+1;i<=r;++i) a[i]=(a[i]+pa[i-l])%P;
+    solve(z+1,r);
 }
 int main()
 {
-    scanf("%d%d",&n,&m);
-    for(int i=0;i<=n;++i) scanf("%lld",&a[i]);
-    for(int i=0;i<=m;++i) scanf("%lld",&b[i]);
-    mul(a,b,c);
-    for(int i=0;i<=n+m;++i)
+    scanf("%d",&n);
+    for(int i=1;i<=n-1;++i) scanf("%lld",&b[i]);
+    a[0]=1;
+    solve(0,n-1);
+    for(int i=0;i<=n-1;++i)
     {
-        printf("%lld ",(c[i]%P+P)%P);
+        printf("%lld ",(a[i]%P+P)%P);
     }
     return 0;
 }

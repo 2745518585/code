@@ -1,66 +1,195 @@
-#pragma GCC optimize("Ofast","inline")
-#include<bits/stdc++.h>
-//#define int long long
-//#define id(x,y) ((y-1)*n+x)
+#include <cstdio>
+#include <iostream>
+#include <algorithm>
 using namespace std;
-const int N=5e5;
 
-struct node
+// #define Debug
+// #define LOCAL
+// #define TestCases
+
+const int N = 2e5, Lg = 18;
+
+int n, k;
+int a[N + 5];
+
+int nxt[N + 5];
+int up[N + 5][2], down[N + 5][2];//0: prefix, 1: suffix
+int occ[N + 5];
+
+int jmp[N + 5][Lg + 5][2][2];//u/d, fr/bk
+
+int getval(int u, int ud, int fb, int tar)
 {
-    int u,v,nxt;
-}e[N];
-
-int n,head[N],cnt,ro,mx,fa[N],T;
-
-void dfs(int x,int f,int dep)
-{
-    fa[x]=f;
-    if(mx<dep)mx=dep,ro=x;
-    for(int i=head[x];i;i=e[i].nxt)
-    {
-        int v=e[i].v;
-        if(v==f)continue;
-        dfs(v,x,dep+1);
-    }
+	if (fb == 0)
+	{
+		for (int k = Lg; k >= 0; k--)
+		{
+			if (jmp[u][k][ud][fb] >= tar)
+				u = jmp[u][k][ud][fb];
+		}
+	}
+	else
+	{
+		for (int k = Lg; k >= 0; k--)
+		{
+			if (jmp[u][k][ud][fb] <= tar)
+				u = jmp[u][k][ud][fb];
+		}
+	}
+	return u;
 }
 
-void sol()
+int ans = N + 1;
+void update(int l, int r)
 {
-    cin>>n;
-    for(int i=1;i<n;i++)
-    {
-        int u,v;
-        cin>>u>>v;
-        e[++cnt]=(node){u,v,head[u]};head[u]=cnt;
-        e[++cnt]=(node){v,u,head[v]};head[v]=cnt;
-    }
-    ro=1;mx=0;
-    dfs(ro,0,1);
-    int t=ro;ro=1;mx=0;
-    dfs(t,0,1);
-    if(mx%4==0)
-    {
-        cout<<mx/2<<'\n';
-        int w=mx/2+1,u=ro,v,p=mx;
-        while(mx>w)u=fa[u],mx--;
-        v=fa[u];
-        for(int i=1;i<p/2;i+=2)cout<<u<<' '<<i<<'\n'<<v<<' '<<i<<'\n';
-        return;
-    }
-    cout<<(mx/2+1)<<'\n';
-    int w=(mx+1)/2,x=ro,p=mx;
-    while(mx>w)x=fa[x],mx--;
-    for(int i=0;i<=max(p-w,w-1);i++)cout<<x<<' '<<i<<'\n';    
+	if (l != -1 && r != -1)
+		ans = min(ans, r - l);
+	return ;
 }
 
-void clear()
+void solve()
 {
-    cnt=0;
-    for(int i=1;i<=n;i++)head[i]=0;
+	scanf("%d%d", &n, &k);
+	for (int i = 1; i <= n; i++)
+		scanf("%d", a + i);
+
+	if (k & 1)
+		return puts("-1"), void();
+
+	for (int i = 1; i <= n; i++)
+	{
+		up[i][0] = occ[a[i] + 1], down[i][0] = occ[a[i] - 1];
+		occ[a[i]] = i;
+	}
+	for (int i = 0; i <= n + 1; i++)
+		occ[i] = n + 1;
+	for (int i = n; i > 0; i--)
+	{
+		nxt[i] = occ[a[i]];
+		up[i][1] = occ[a[i] + 1], down[i][1] = occ[a[i] - 1];
+		occ[a[i]] = i;
+	}
+
+	up[0][0] = down[0][0] = 0, up[0][1] = down[0][1] = n + 1;
+	up[n + 1][0] = down[n + 1][0] = 0, up[n + 1][1] = down[n + 1][1] = n + 1;
+	for (int i = 0; i <= n + 1; i++)
+	{
+		jmp[i][0][0][0] = up[i][0], jmp[i][0][0][1] = up[i][1];
+		jmp[i][0][1][0] = down[i][0], jmp[i][0][1][1] = down[i][1];
+	}
+	for (int k = 1; k <= Lg; k++)
+	{
+		for (int i = 0; i <= n + 1; i++)
+		{
+			jmp[i][k][0][0] = jmp[ jmp[i][k - 1][0][0] ][k - 1][0][0];
+			jmp[i][k][1][0] = jmp[ jmp[i][k - 1][1][0] ][k - 1][1][0];
+		}
+		for (int i = n + 1; i >= 0; i--)
+		{
+			jmp[i][k][0][1] = jmp[ jmp[i][k - 1][0][1] ][k - 1][0][1];
+			jmp[i][k][1][1] = jmp[ jmp[i][k - 1][1][1] ][k - 1][1][1];
+		}
+	}
+
+	for (int i = 1; i <= n; i++)
+	{
+		int u = i, v = nxt[i], L = -1, R = -1;
+		if (nxt[i] > n)
+			continue;
+
+		int l = 1, r = u;
+		while (l <= r)
+		{
+			int mid = (l + r) >> 1;
+			int upper = getval(u, 0, 0, mid), lower = getval(u, 1, 0, mid);
+			if (a[upper] - a[lower] + 1 >= k / 2)
+				L = mid, l = mid + 1;
+			else
+				r = mid - 1;
+		}
+
+		l = v, r = n;
+		while (l <= r)
+		{
+			int mid = (l + r) >> 1;
+			int upper = getval(u, 0, 1, mid), lower = getval(v, 1, 1, mid);
+			if (a[upper] - a[lower] + 1 >= k / 2)
+				R = mid, r = mid - 1;
+			else
+				l = mid + 1;
+		}
+		update(L, R);
+
+		l = v, r = n, R = -1;
+		while (l <= r)
+		{
+			int mid = (l + r) >> 1;
+			int upper = getval(v, 0, 1, mid), lower = getval(u, 1, 1, mid);
+			if (a[upper] - a[lower] + 1 >= k / 2)
+				R = mid, r = mid - 1;
+			else
+				l = mid + 1;
+		}
+		update(L, R);
+
+		/*==================================================================*/
+
+		l = v, r = n, R = -1;
+		while (l <= r)
+		{
+			int mid = (l + r) >> 1;
+			int upper = getval(v, 0, 1, mid), lower = getval(v, 1, 1, mid);
+			if (a[upper] - a[lower] + 1 >= k / 2)
+				R = mid, r = mid - 1;
+			else
+				l = mid + 1;
+		}
+
+		l = 1, r = u, L = -1;
+		while (l <= r)
+		{
+			int mid = (l + r) >> 1;
+			int upper = getval(v, 0, 0, mid), lower = getval(u, 1, 0, mid);
+			if (a[upper] - a[lower] + 1 >= k / 2)
+				L = mid, l = mid + 1;
+			else
+				r = mid - 1;
+		}
+		update(L, R);
+
+		l = 1, r = u, L = -1;
+		while (l <= r)
+		{
+			int mid = (l + r) >> 1;
+			int upper = getval(u, 0, 0, mid), lower = getval(v, 1, 0, mid);
+			if (a[upper] - a[lower] + 1 >= k / 2)
+				L = mid, l = mid + 1;
+			else
+				r = mid - 1;
+		}
+		update(L, R);
+	}
+
+	if (ans > n)
+		ans = -1;
+	printf("%d\n", ans);
+	return ;
 }
 
-main()
+int main()
 {
-    cin>>T;
-    while(T--)sol(),clear();
+	#ifdef LOCAL
+	freopen("data.in", "r", stdin);
+	freopen("mycode.out", "w", stdout);
+	#endif
+	
+	int T = 1;
+	
+	#ifdef TestCases
+	scanf("%d", &T);
+	#endif
+	
+	while (T--)
+		solve();
+	return 0;
 }
