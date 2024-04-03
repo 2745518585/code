@@ -5,9 +5,6 @@ using namespace orita;
 int main(int argc,char **argv)
 {
     register_rnd(argc,argv);
-    printf("1\n");
-    int n=rnd(1,100),m=rnd(1,100);
-    printf("%d %d\n",n,m);
-    for(int i=1;i<=m;++i) cout<<rnd_pair<_LES>(0,n)<<" "<<rnd(1,100)<<"\n";
+    printf("2 40\n1\n%d\n",atoi(getenv("runned_sum"))+1);
     return 0;
 }

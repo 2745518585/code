@@ -19,13 +19,13 @@ ll inv(ll a)
 }
 ll A(ll a,ll b)
 {
-    if(b>a) return 0;
-    return (jc[a]*ivjc[a-b]%P)%P;
+    if(a<b) return 0;
+    return jc[a]*ivjc[a-b]%P;
 }
 ll C(ll a,ll b)
 {
-    if(b>a) return 0;
-    return (jc[a]*ivjc[a-b]%P*ivjc[b]%P)%P;
+    if(a<b) return 0;
+    return jc[a]*ivjc[a-b]%P*ivjc[b]%P;
 }
 int main()
 {

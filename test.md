@@ -1,1 +1,8 @@
-The background color is `#ffffff` for light mode and `#000000` for dark mode.
+| 子任务编号 | 特殊性质 | 分值 |
+| :---: | :---: | :---: |
+| 1 | $n \le 8$ | 3 |
+| 2 | $a_i=-1$ | 7 |
+| 3 | $n\le200$ | 10 |
+| 4 | $n\le2000$ | 10 |
+| 5 | $c_i=1$ | 30 |
+| 6 | 无 | 40 |

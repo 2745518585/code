@@ -1,168 +1,87 @@
 #include<cstdio>
 #include<algorithm>
-#include<vector>
 using namespace std;
 typedef long long ll;
-const int N=11,M=100001;
-const ll P=998244353;
-int n,m,q,b[M][N];
-ll L,a[N][N],c[N][N],d1[N],d2[N];
-struct poly
+const int N=3001;
+const ll P=1e9+7;
+int n,m,k,op,b[N],f[N][N],h[N];
+ll g[N][N];
+struct str
 {
-    int n;
-    ll a[21];
-    poly()
-    {
-        for(int i=0;i<=20;++i) a[i]=0;
-    }
-    poly(ll x)
-    {
-        for(int i=0;i<=20;++i) a[i]=x;
-    }
-    poly(const vector<ll> &x)
-    {
-        for(int i=0;i<=20;++i)
-        {
-            ll w=1;
-            for(int j=0;j<=x.size();++j) a[i]=(a[i]+x[j]*w%P)%P,w=w*i%P;
-        }
-    }
-    ll &operator[](size_t pos) {return a[pos];}
-    ll operator[](size_t pos) const {return a[pos];}
-    ll operator()(ll x)
-    {
-        ll s=0,w=1;
-        for(int i=0;i<=n;++i) s=(s+w*a[i]%P)%P,w=w*x%P;
-        return s;
-    }
-    poly operator()(poly x)
-    {
-        poly s=0,w=1;
-        for(int i=0;i<=n;++i) s=s+w*a[i],w=w*x;
-        return s;
-    }
-    friend poly operator+(const poly &a,const poly &b)
-    {
-        poly c;
-        for(int i=0;i<=20;++i) c[i]=(a[i]+b[i])%P;
-        return c;
-    }
-    friend poly operator*(const poly &a,const poly &b)
-    {
-        poly c;
-        for(int i=0;i<=20;++i) c[i]=a[i]*b[i]%P;
-        return c;
-    }
-}f[N];
-void dfs(int x)
+    int l,r,w;
+}a[N];
+void check(int &x1,ll &y1,int x2,ll y2)
 {
-    static int c[N];
-    if(x==0)
-    {
-        ++q;
-        for(int i=1;i<=n;++i) b[q][i]=c[i];
-        return;
-    }
-    for(c[x]=0;c[x]<=x-1;++c[x]) dfs(x-1);
+    if(x2>x1) x1=x2,y1=y2;
+    else if(x1==x2) y1=(y1+y2)%P;
 }
-void check1(int p,int x,int y)
+bool cmp(str a,str b)
 {
-    if(x==0) d1[y]=max(d1[y],d2[p]-c[y][p]+(y<x));
-    else if(y==0) d2[x]=min(d2[x],d2[p]-c[x][p]-(y<x));
-    else c[x][y]=min(c[x][y],c[y][p]-c[x][p]-(y<x));
-}
-void check2(int p,int x,int y)
-{
-    if(x==0) d2[y]=min(d2[y],d1[p]+c[p][y]-(y<x));
-    else if(y==0) d1[x]=max(d1[x],d1[p]+c[p][x]+(y<x));
-    else c[y][x]=min(c[y][x],c[p][y]-c[p][x]-(y<x));
-}
-void check3(int p,int x,int y)
-{
-    if(x==0) d2[y]=min(d2[y],d2[p]+c[p][y]);
-    else if(y==0) d1[x]=max(d1[x],d1[p]-c[x][p]);
-    else if(x!=0&&y!=0) c[y][x]=min(c[y][x],c[p][y]+c[x][p]);
-}
-ll solve(int p,int t)
-{
-    for(int i=1;i<=n;++i) d1[i]=0,d2[i]=L,f[i]=poly({0,1});
-    ll w=1;
-    for(int i=1;i<=n;++i)
-    {
-        for(int j=1;j<=n;++j) c[i][j]=a[i][j];
-    }
-    for(int i=n;i>=2;--i)
-    {
-        if((p&(1<<(i-1)))==0)
-        {
-            for(int j=0;j<=i-1;++j)
-            {
-                if(j!=b[t][i]) check1(i,b[t][i],j);
-            }
-            for(int j=0;j<=i-1;++j) check3(i,b[t][i],j);
-            if(b[t][i]==0) w=w*d2[i]%P;
-            else
-            {
-                f[b[t][i]]=f[b[t][i]]*f[i](poly({c[b[t][i]][i],1}));
-            }
-        }
-        else
-        {
-            for(int j=0;j<=i-1;++j)
-            {
-                if(j!=b[t][i]) check2(i,b[t][i],j);
-            }
-            for(int j=0;j<=i-1;++j) check3(i,j,b[t][i]);
-            if(b[t][i]==0) w=w*(d1[i]-1)%P;
-            else
-            {
-                f[b[t][i]]=f[b[t][i]]*f[i](poly({-c[i][b[t][i]]-1,1}));
-            }
-        }
-    }
-    for(int i=1;i<=n;++i)
-    {
-        if(d1[i]>d2[i]||c[i][i]<0) return 0;
-    }
-    for(int i=1;i<=n;++i) printf("%d %d %d %lld %lld\n",i,(p&(1<<(i-1)))!=0,b[t][i],d1[i],d2[i]);
-    for(int i=0;i<=f[1].n;++i) printf("%lld ",f[1][i]);printf("\n");
-    printf("%lld %lld\n",w,(p&1)==0?w*f[1](d2[1])%P:w*f[1](d1[1]-1)%P);
-    printf("\n");
-    if((p&1)==0) return w*f[1](d2[1])%P;
-    else return w*f[1](d1[1]-1)%P;
-}
-int popc(int x)
-{
-    int s=0;
-    while(x) x^=x&-x,++s;
-    return s;
+    if(a.l!=b.l) return a.l<b.l;
+    return a.r<b.r;
 }
 int main()
 {
-    scanf("%d%d%lld",&n,&m,&L);
+    scanf("%d%d%d%d",&n,&m,&k,&op);
     for(int i=1;i<=n;++i)
     {
-        for(int j=1;j<=n;++j) a[i][j]=1e15;
+        scanf("%d%d%d",&a[i].w,&a[i].l,&a[i].r);
+        ++h[a[i].l],--h[a[i].r+1];
     }
-    for(int i=1;i<=m;++i)
+    sort(a+1,a+n+1,cmp);
+    for(int i=1;i<=m;++i) h[i]+=h[i-1];
+    for(int i=1;i<=m;++i) b[i]=b[i-1]+(h[i]==0);
+    for(int i=1;i<=n;++i)
     {
-        int x,y;
-        ll w;
-        scanf("%d%d%lld",&x,&y,&w);
-        a[y][x]=min(a[y][x],w);
+        a[i].l-=b[a[i].l];
+        a[i].r-=b[a[i].r];
     }
-    dfs(n);
-    ll s=0;
-    for(int i=0;i<=(1<<n)-1;++i)
+    m-=b[m];
+    if(op==0)
     {
-        ll w=0;
-        for(int j=1;j<=q;++j)
+        int x=1,s=0;
+        for(int i=1;i<=n;++i)
         {
-            w=(w+solve(i,j))%P;
+            while(x<=n&&h[x]==0) ++x;
+            if(x<a[i].l) ++s,x=a[i-1].r+1;
+            while(x<=n&&h[x]==0) ++x;
+            if(a[i].w<=k) x=min(x+(k-a[i].w),a[i].r+1);
+            else x=a[i].r+1,++s;
         }
-        if(popc(i)%2==0) s=(s+w)%P;
-        else s=(s-w)%P;
+        while(x<=n&&h[x]==0) ++x;
+        if(x<n+1) ++s;
+        printf("%d",n-s);
+        return 0;
     }
-    printf("%lld",s);
+    for(int i=0;i<=n+1;++i)
+    {
+        for(int j=0;j<=m+1;++j) f[i][j]=-1e9;
+    }
+    f[1][1]=0;
+    g[1][1]=1;
+    for(int i=1;i<=n;++i)
+    {
+        if(a[i].w<=k)
+        {
+            for(int j=a[i].l;j<=a[i].r-(k-a[i].w);++j)
+            {
+                check(f[i+1][j+(k-a[i].w)],g[i+1][j+(k-a[i].w)],f[i][j]+1,g[i][j]);
+            }
+            for(int j=a[i].r-(k-a[i].w)+1;j<=a[i].r;++j)
+            {
+                check(f[i+1][a[i].r+1],g[i+1][a[i].r+1],f[i][j]+1,g[i][j]);
+            }
+        }
+        for(int j=a[i].l;j<=a[i].r;++j)
+        {
+            check(f[i+1][a[i].r+1],g[i+1][a[i].r+1],f[i][j],g[i][j]);
+        }
+        for(int j=a[i].r+1;j<=m;++j)
+        {
+            check(f[i+1][j],g[i+1][j],f[i][j]+(a[i].w<=k),g[i][j]);
+        }
+    }
+    for(int i=1;i<=n;++i) check(f[i+1][m+1],g[i+1][m+1],f[i][m+1]+(a[i].w<=k),g[i][m+1]);
+    printf("%d %lld",f[n+1][m+1],g[n+1][m+1]);
     return 0;
 }

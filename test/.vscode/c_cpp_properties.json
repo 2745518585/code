@@ -3,7 +3,7 @@
         {
             "name": "Win32",
             "includePath": [
-                "${default}",
+                "${workspaceFolder}/**",
                 "D:\\Orita\\build\\bin\\"
             ],
             "defines": [
