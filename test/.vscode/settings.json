@@ -128,7 +128,8 @@
         "xlocmes": "cpp",
         "xlocmon": "cpp",
         "xlocnum": "cpp",
-        "xloctime": "cpp"
+        "xloctime": "cpp",
+        "xhash": "cpp"
     },
     "C_Cpp.clang_format_style": "file:.vscode/.clang-format",
     "terminal.integrated.mouseWheelScrollSensitivity": 0.5,

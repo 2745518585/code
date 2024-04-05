@@ -5,6 +5,10 @@ using namespace orita;
 int main(int argc,char **argv)
 {
     register_rnd(argc,argv);
-    printf("2 40\n1\n%d\n",atoi(getenv("runned_sum"))+1);
+    int n=rnd(1,5),k=rnd(1,n);
+    printf("%d %d\n",n,k);
+    auto a=rnd_tree(n);
+    for(auto i:a) printf("%d %d\n",i.first,i.second);
+    for(int i=1;i<=n;++i) printf("%d ",rnd(1,n));
     return 0;
 }
