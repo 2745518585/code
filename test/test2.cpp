@@ -1,87 +1,88 @@
 #include<cstdio>
 #include<algorithm>
 using namespace std;
-typedef long long ll;
-const int N=3001;
-const ll P=1e9+7;
-int n,m,k,op,b[N],f[N][N],h[N];
-ll g[N][N];
-struct str
+const int N=1000001;
+int n,q,b[N];
+char a[N],d[N];
+struct tree
 {
-    int l,r,w;
-}a[N];
-void check(int &x1,ll &y1,int x2,ll y2)
+    int l,r,s1,s2;
+}T[N<<2];
+void pushup(int x)
 {
-    if(x2>x1) x1=x2,y1=y2;
-    else if(x1==x2) y1=(y1+y2)%P;
+    T[x].s1=min(T[x<<1].s1,T[x<<1|1].s1);
+    T[x].s2=max(T[x<<1].s2,T[x<<1|1].s2);
 }
-bool cmp(str a,str b)
+void build(int x,int l,int r)
 {
-    if(a.l!=b.l) return a.l<b.l;
-    return a.r<b.r;
+    T[x].l=l,T[x].r=r;
+    if(l==r)
+    {
+        T[x].s1=T[x].s2=b[l];
+        return;
+    }
+    int z=l+r>>1;
+    build(x<<1,l,z);
+    build(x<<1|1,z+1,r);
+    pushup(x);
+}
+void add(int x,int q,int k)
+{
+    if(T[x].l==T[x].r)
+    {
+        T[x].s1=T[x].s2=k;
+        return;
+    }
+    int z=T[x].l+T[x].r>>1;
+    if(q<=z) add(x<<1,q,k);
+    else add(x<<1|1,q,k);
+    pushup(x);
+}
+int sum1(int x,int k)
+{
+    if(T[x].l==T[x].r) return T[x].l;
+    int z=T[x].l+T[x].r>>1;
+    if(T[x<<1].s1<k) return sum1(x<<1,k);
+    else return sum1(x<<1|1,k);
+}
+int sum2(int x,int l,int r)
+{
+    if(T[x].l>=l&&T[x].r<=r) return T[x].s2;
+    int z=T[x].l+T[x].r>>1,s=-1e9;
+    if(l<=z) s=max(s,sum2(x<<1,l,r));
+    if(r>z) s=max(s,sum2(x<<1|1,l,r));
+    return s;
 }
 int main()
 {
-    scanf("%d%d%d%d",&n,&m,&k,&op);
+    scanf("%d%s",&n,a+1);
     for(int i=1;i<=n;++i)
     {
-        scanf("%d%d%d",&a[i].w,&a[i].l,&a[i].r);
-        ++h[a[i].l],--h[a[i].r+1];
+        b[i]=b[i-1];
+        if(a[i]=='(') ++b[i];
+        else --b[i];
     }
-    sort(a+1,a+n+1,cmp);
-    for(int i=1;i<=m;++i) h[i]+=h[i-1];
-    for(int i=1;i<=m;++i) b[i]=b[i-1]+(h[i]==0);
+    b[n+1]=-1e9;
+    build(1,1,n+1);
     for(int i=1;i<=n;++i)
     {
-        a[i].l-=b[a[i].l];
-        a[i].r-=b[a[i].r];
-    }
-    m-=b[m];
-    if(op==0)
-    {
-        int x=1,s=0;
-        for(int i=1;i<=n;++i)
+        if(a[i]==')')
         {
-            while(x<=n&&h[x]==0) ++x;
-            if(x<a[i].l) ++s,x=a[i-1].r+1;
-            while(x<=n&&h[x]==0) ++x;
-            if(a[i].w<=k) x=min(x+(k-a[i].w),a[i].r+1);
-            else x=a[i].r+1,++s;
+            add(1,i,1e9);
+            d[++q]=')';
+            continue;
         }
-        while(x<=n&&h[x]==0) ++x;
-        if(x<n+1) ++s;
-        printf("%d",n-s);
-        return 0;
-    }
-    for(int i=0;i<=n+1;++i)
-    {
-        for(int j=0;j<=m+1;++j) f[i][j]=-1e9;
-    }
-    f[1][1]=0;
-    g[1][1]=1;
-    for(int i=1;i<=n;++i)
-    {
-        if(a[i].w<=k)
+        int x=sum1(1,b[i-1])-1;
+        int p=sum2(1,i,x);
+        for(int j=b[i];j<=p;++j) d[++q]='(';
+        int o=i;
+        while(b[i]<p)
         {
-            for(int j=a[i].l;j<=a[i].r-(k-a[i].w);++j)
-            {
-                check(f[i+1][j+(k-a[i].w)],g[i+1][j+(k-a[i].w)],f[i][j]+1,g[i][j]);
-            }
-            for(int j=a[i].r-(k-a[i].w)+1;j<=a[i].r;++j)
-            {
-                check(f[i+1][a[i].r+1],g[i+1][a[i].r+1],f[i][j]+1,g[i][j]);
-            }
+            add(1,i,1e9);
+            ++i;
         }
-        for(int j=a[i].l;j<=a[i].r;++j)
-        {
-            check(f[i+1][a[i].r+1],g[i+1][a[i].r+1],f[i][j],g[i][j]);
-        }
-        for(int j=a[i].r+1;j<=m;++j)
-        {
-            check(f[i+1][j],g[i+1][j],f[i][j]+(a[i].w<=k),g[i][j]);
-        }
+        add(1,i,1e9);
     }
-    for(int i=1;i<=n;++i) check(f[i+1][m+1],g[i+1][m+1],f[i][m+1]+(a[i].w<=k),g[i][m+1]);
-    printf("%d %lld",f[n+1][m+1],g[n+1][m+1]);
+    for(int i=1;i<=q;++i) printf("%c",d[i]);
     return 0;
 }

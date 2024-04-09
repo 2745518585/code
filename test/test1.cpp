@@ -1,85 +1,65 @@
 #include<cstdio>
 #include<algorithm>
+#include<vector>
 using namespace std;
 typedef long long ll;
-const int N=3001;
-const ll P=1e9+7;
-int n,m,k,op,b[N],f[N][N],h[N];
-ll g[N][N];
+const int N=1000001;
+const ll P=998244353;
+int n,m,q,b[N];
+ll f[N][2];
 struct str
 {
-    int l,r,w;
+    int l,r;
 }a[N];
-void check(int &x1,ll &y1,int x2,ll y2)
-{
-    if(x2>x1) x1=x2,y1=y2;
-    else if(x1==x2) y1=(y1+y2)%P;
-}
 bool cmp(str a,str b)
 {
-    if(a.l!=b.l) return a.l<b.l;
-    return a.r<b.r;
+    return a.l<b.l;
 }
+struct sgt
+{
+    ll T[N];
+    void add(int x,ll k)
+    {
+        while(x<=q) T[x]=(T[x]+k)%P,x+=x&-x;
+    }
+    ll sum(int x)
+    {
+        ll s=0;
+        while(x>=1) s=(s+T[x])%P,x-=x&-x;
+        return s;
+    }
+}T1,T2;
 int main()
 {
-    scanf("%d%d%d%d",&n,&m,&k,&op);
+    scanf("%d%d",&n,&m);
     for(int i=1;i<=n;++i)
     {
-        scanf("%d%d%d",&a[i].w,&a[i].l,&a[i].r);
-        ++h[a[i].l],--h[a[i].r+1];
+        scanf("%d%d",&a[i].l,&a[i].r);
+        b[++q]=a[i].l,b[++q]=a[i].r;
+    }
+    sort(b+1,b+q+1);
+    q=unique(b+1,b+q+1)-b-1;
+    for(int i=1;i<=n;++i)
+    {
+        a[i].l=lower_bound(b+1,b+q+1,a[i].l)-b;
+        a[i].r=lower_bound(b+1,b+q+1,a[i].r)-b;
     }
     sort(a+1,a+n+1,cmp);
-    for(int i=1;i<=m;++i) h[i]+=h[i-1];
-    for(int i=1;i<=m;++i) b[i]+=(h[i]==0);
-    for(int i=1;i<=n;++i)
+    for(int i=1;i<=m;++i)
     {
-        a[i].l-=b[a[i].l];
-        a[i].r-=b[a[i].r];
-    }
-    m-=b[m];
-    if(op==0)
-    {
-        int x=1,s=0;
-        for(int i=1;i<=n;++i)
+        int l,r;
+        scanf("%d%d",&l,&r);
+        int z1=lower_bound(b+1,b+q+1,l)-b,z2=lower_bound(b+1,b+q+1,r)-b;
+        if(b[z1]!=l||b[z2]!=r)
         {
-            while(x<=n&&h[x]==0) ++x;
-            if(x<a[i].l) ++s,x=a[i-1].r+1;
-            while(x<=n&&h[x]==0) ++x;
-            if(a[i].w<=k) x=min(x+(k-a[i].w),a[i].r+1);
-            else x=a[i].r+1,++s;
+            printf("0\n");;
+            continue;
         }
-        while(x<=n&&h[x]==0) ++x;
-        if(x<n+1) ++s;
-        printf("%d",n-s);
-        return 0;
-    }
-    for(int i=0;i<=n+1;++i)
-    {
-        for(int j=0;j<=n+1;++j) f[i][j]=-1e9;
-    }
-    f[0][0]=0;
-    g[0][0]=1;
-    for(int i=1;i<=n;++i)
-    {
-        for(int j=0;j<=i-1;++j)
+        l=z1,r=z2;
+        for(int j=1;j<=q;++j) T1.T[j]=T2.T[j]=0;
+        for(int j=1;j<=n;++j)
         {
-            if(f[i-1][j]<a[i].l-1) continue;
-            if(f[i-1][j]>a[i].r)
-            {
-                check(f[i][j+(a[i].w<=k)],g[i][j+(a[i].w<=k)],f[i-1][j],g[i-1][j]);
-                continue;
-            }
-            if(a[i].w<=k) check(f[i][j+1],g[i][j+1],min(f[i-1][j]+(k-a[i].w),a[i].r),g[i-1][j]);
-            check(f[i][j],g[i][j],a[i].r,g[i-1][j]);
+            if(a[j].l<l||a[j].r>r) return;
         }
     }
-    for(int i=n;i>=0;--i)
-    {
-        if(f[n][i]==n)
-        {
-            printf("%d %lld",i,g[n][i]);
-            return 0;
-        }
-    }
-    return 0;
 }

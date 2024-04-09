@@ -1,4 +1,4 @@
-#pragma GCC optimize("O2")
+#pragma GCC optimize("Ofast","inline")
 #include<cstdio>
 #include<algorithm>
 #include<vector>
@@ -48,11 +48,11 @@ namespace fhq
     {
         int x1,x2,k1,k2,l,r,s,h;
     }T[N];
-    void pushup(int x)
+    inline void pushup(int x)
     {
         T[x].s=T[T[x].l].s+T[T[x].r].s+1;
     }
-    void pushdown(int x)
+    inline void pushdown(int x)
     {
         if(T[x].k1)
         {
@@ -107,13 +107,13 @@ namespace fhq
     }
     void add(vector<pair<int,int>> k)
     {
-        sort(k.begin(),k.end(),[](pair<int,int> a,pair<int,int> b){return a.first-a.second<b.first-b.second;});
+        sort(k.begin(),k.end(),[](const pair<int,int> &a,const pair<int,int> &b){return a.first-a.second<b.first-b.second;});
         int p1=0,p2=rt;
         for(auto i:k)
         {
             int z;
             split(p2,i.first-i.second,z,p2);
-            T[++tot].x1=i.first; 
+            T[++tot].x1=i.first;
             T[tot].x2=i.second;
             T[tot].l=T[tot].r=0;
             T[tot].s=1;
@@ -123,23 +123,49 @@ namespace fhq
         p1=merge(p1,p2);
         rt=p1;
     }
-    int num1(int x,int k)
+    pair<int,int> num1(int x,int k)
     {
-        if(x==0) return 1e9;
-        pushdown(x);
-        if(k<T[x].x2) return num1(T[x].r,k);
-        int p=num1(T[x].l,k);
-        if(p==1e9) return T[x].x1-T[x].x2;
-        return p;
+        pair<int,int> s=make_pair(1e9,1e9);
+        while(x)
+        {
+            pushdown(x);
+            if(k<T[x].x2) x=T[x].r;
+            else s=make_pair(T[x].x1,T[x].x2),x=T[x].l;
+        }
+        return s;
     }
-    int num2(int x,int k)
+    pair<int,int> num2(int x,int k)
     {
-        if(x==0) return 1e9;
-        pushdown(x);
-        if(k<T[x].x1) return num2(T[x].l,k);
-        int p=num2(T[x].r,k);
-        if(p==1e9) return T[x].x1-T[x].x2;
-        return p;
+        pair<int,int> s=make_pair(1e9,1e9);
+        while(x)
+        {
+            pushdown(x);
+            if(k<T[x].x1) x=T[x].l;
+            else s=make_pair(T[x].x1,T[x].x2),x=T[x].r;
+        }
+        return s;
+    }
+    int sum1(int x,int k)
+    {
+        int s=0;
+        while(x)
+        {
+            pushdown(x);
+            if(T[x].x2>k) s+=T[T[x].l].s+1,x=T[x].r;
+            else x=T[x].l;
+        }
+        return s;
+    }
+    int sum2(int x,int k)
+    {
+        int s=0;
+        while(x)
+        {
+            pushdown(x);
+            if(T[x].x1>k) s+=T[T[x].r].s+1,x=T[x].l;
+            else x=T[x].r;
+        }
+        return s;
     }
 }
 namespace sgt1
@@ -172,7 +198,7 @@ namespace sgt2
 }
 int main()
 {
-    srand(19260817);
+    srand(147258369);
     read(n,m);
     for(int i=1;i<=n;++i) read(a1[i].x,a1[i].y);
     for(int i=1;i<=m;++i) read(a2[i].z,a2[i].x,a2[i].y,a3[i].x,a3[i].y);
@@ -258,6 +284,11 @@ int main()
         for(auto j:b2[i]) f[j.second]+=sgt2::sum(n-j.first);
         for(auto j:b1[i]) sgt2::add(n-j.first+1,j.second);
     }
+
+    for(int i=1;i<=m;++i)
+    {
+        if(h[i]==false) f[i]=0;
+    }
     
     for(int i=1;i<=m;++i) b1[i].clear();
     for(int i=1;i<=n;++i)
@@ -266,12 +297,13 @@ int main()
     }
     for(int i=1;i<=m;++i)
     {
-        int l=fhq::num1(rt,a2[i].y),r=fhq::num2(rt,a2[i].x);
-        if(l!=1e9&&r!=1e9)
+        auto l=fhq::num1(rt,a2[i].y);
+        if(l.first!=1e9&&l.first<=a2[i].x)
         {
+            auto r=fhq::num2(rt,a2[i].x);
             int x1,x2,x3;
-            fhq::split(rt,l-1,x1,x2);
-            fhq::split(x2,r,x2,x3);
+            fhq::split(rt,(l.first-l.second)-1,x1,x2);
+            fhq::split(x2,(r.first-r.second),x2,x3);
             if(a2[i].z==1)
             {
                 fhq::T[x2].x2=a2[i].y;
@@ -292,19 +324,7 @@ int main()
             p.push_back(j);
         }
         fhq::add(p);
-        l=fhq::num1(rt,a3[i].y),r=fhq::num2(rt,a3[i].x);
-        if(l==1e9||r==1e9||l>r)
-        {
-            if(h[i]==false) f[i]=0;
-        }
-        else
-        {
-            int x1,x2,x3;
-            fhq::split(rt,l-1,x1,x2);
-            fhq::split(x2,r,x2,x3);
-            f[i]+=fhq::T[x2].s;
-            rt=fhq::merge(fhq::merge(x1,x2),x3);
-        }
+        f[i]+=max(fhq::T[rt].s-fhq::sum1(rt,a3[i].y)-fhq::sum2(rt,a3[i].x),0);
         print(f[i]);
         putchar('\n');
     }
