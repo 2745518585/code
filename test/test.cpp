@@ -1,312 +1,202 @@
-#pragma GCC optimize("O2")
-#include<cstdio>
-#include<algorithm>
-#include<vector>
+#include<bits/stdc++.h>
+#define int long long
 using namespace std;
-inline char gc()
-{
-    static char buf[100000],*p1=buf,*p2=buf;
-    return p1==p2&&(p2=(p1=buf)+fread(buf,1,100000,stdin),p1==p2)?EOF:*p1++;
-}
-template<typename T> inline void read(T &x)
-{
-    T u=1,t=0;char c=gc();
-    while(c<'0'||c>'9') {if(c=='-') u=-1; c=gc();}
-    while(c>='0'&&c<='9') t*=10,t+=c-'0',c=gc();
-    x=u*t;return;
-}
-template<typename T,typename ...O> inline void read(T &x,O &...o) {read(x),read(o...);}
-template<typename T> inline void print(T x)
-{
-    if(x==0) return putchar('0'),void();
-    if(x<0) putchar('-'),x=-x;
-    int c[129]={0},k=0;
-    while(x) c[++k]=x%10,x/=10;
-    for(int i=k;i;--i) putchar(c[i]+'0');
-}
-template<typename T,typename ...O> inline void print(T x,O ...o) {print(x),putchar(' '),print(o...);}
-const int N=10000001;
-int n,m,rt,f[N];
-bool h[N];
-struct
-{
-    int x,y,t;
-}a1[N];
-struct
-{
-    int z,x,y;
-}a2[N];
-struct
-{
-    int x,y;
-}a3[N];
-vector<pair<int,int>> b1[N],b2[N];
-namespace fhq
-{
-    int tot;
-    struct tree
-    {
-        int x1,x2,k1,k2,l,r,s,h;
-    }T[N];
-    void pushup(int x)
-    {
-        T[x].s=T[T[x].l].s+T[T[x].r].s+1;
-    }
-    void pushdown(int x)
-    {
-        if(T[x].k1)
-        {
-            if(T[x].l) T[T[x].l].x1=T[T[x].l].k1=T[x].k1;
-            if(T[x].r) T[T[x].r].x1=T[T[x].r].k1=T[x].k1;
-            T[x].k1=0;
-        }
-        if(T[x].k2)
-        {
-            if(T[x].l) T[T[x].l].x2=T[T[x].l].k2=T[x].k2;
-            if(T[x].r) T[T[x].r].x2=T[T[x].r].k2=T[x].k2;
-            T[x].k2=0;
-        }
-    }
-    void split(int x,int k,int &x1,int &x2)
-    {
-        if(x==0)
-        {
-            x1=x2=0;
-            return;
-        }
-        pushdown(x);
-        if(T[x].x1-T[x].x2<=k)
-        {
-            x1=x;
-            split(T[x].r,k,T[x].r,x2);
-        }
-        else
-        {
-            x2=x;
-            split(T[x].l,k,x1,T[x].l);
-        }
-        pushup(x);
-    }
-    int merge(int x1,int x2)
-    {
-        if(x1==0||x2==0) return x1|x2;
-        if(T[x1].h<T[x2].h)
-        {
-            pushdown(x1);
-            T[x1].r=merge(T[x1].r,x2);
-            pushup(x1);
-            return x1;
-        }
-        else
-        {
-            pushdown(x2);
-            T[x2].l=merge(x1,T[x2].l);
-            pushup(x2);
-            return x2;
-        }
-    }
-    void add(vector<pair<int,int>> k)
-    {
-        sort(k.begin(),k.end(),[](pair<int,int> a,pair<int,int> b){return a.first-a.second<b.first-b.second;});
-        int p1=0,p2=rt;
-        for(auto i:k)
-        {
-            int z;
-            split(p2,i.first-i.second,z,p2);
-            T[++tot].x1=i.first; 
-            T[tot].x2=i.second;
-            T[tot].l=T[tot].r=0;
-            T[tot].s=1;
-            T[tot].h=rand();
-            p1=merge(p1,merge(z,tot));
-        }
-        p1=merge(p1,p2);
-        rt=p1;
-    }
-    int num1(int x,int k)
-    {
-        if(x==0) return 1e9;
-        pushdown(x);
-        if(k<T[x].x2) return num1(T[x].r,k);
-        int p=num1(T[x].l,k);
-        if(p==1e9) return T[x].x1-T[x].x2;
-        return p;
-    }
-    int num2(int x,int k)
-    {
-        if(x==0) return 1e9;
-        pushdown(x);
-        if(k<T[x].x1) return num2(T[x].l,k);
-        int p=num2(T[x].r,k);
-        if(p==1e9) return T[x].x1-T[x].x2;
-        return p;
-    }
-}
-namespace sgt1
-{
-    int T[N];
-    void add(int x,int k)
-    {
-        while(x<=n) T[x]=min(T[x],k),x+=x&-x;
-    }
-    int sum(int x)
-    {
-        int s=1e9;
-        while(x>=1) s=min(s,T[x]),x-=x&-x;
-        return s;
-    }
-}
-namespace sgt2
-{
-    int T[N];
-    void add(int x,int k)
-    {
-        while(x<=n) T[x]+=k,x+=x&-x;
-    }
-    int sum(int x)
-    {
-        int s=0;
-        while(x>=1) s+=T[x],x-=x&-x;
-        return s;
-    }
-}
-int main()
-{
-    srand(19260817);
-    read(n,m);
-    for(int i=1;i<=n;++i) read(a1[i].x,a1[i].y);
-    for(int i=1;i<=m;++i) read(a2[i].z,a2[i].x,a2[i].y,a3[i].x,a3[i].y);
+const int N=6e5+50,inf=1e18;
 
-    for(int i=1;i<=m;++i)
-    {
-        b1[a2[i].x].push_back(make_pair(a2[i].y,i));
-    }
-    for(int i=1;i<=n;++i)
-    {
-        b2[a1[i].x].push_back(make_pair(a1[i].y,i));
-    }
-    for(int i=1;i<=n;++i) sgt1::T[i]=m+1;
-    for(int i=n;i>=1;--i)
-    {
-        for(auto j:b1[i]) sgt1::add(n-j.first+1,j.second);
-        for(auto j:b2[i]) a1[j.second].t=sgt1::sum(n-j.first+1);
-    }
-    for(int i=1;i<=n;++i) --f[a1[i].t-1];
-    for(int i=m;i>=1;--i) f[i]+=f[i+1];
+struct ask
+{
+    int opt,v,l,r;
+}Q[N];
 
+int n,a[N],q,v[N],fir[N],m,tot,ch[N][2],vi[N],ro;
+vector<int>tmp,in[N];
 
-    for(int i=1;i<=n;++i) b1[i].clear(),b2[i].clear();
-    for(int i=1;i<=n;++i)
-    {
-        b1[a1[i].x].push_back(make_pair(a1[i].y,a1[i].t));
-    }
-    for(int i=1;i<=m;++i)
-    {
-        b2[a3[i].x].push_back(make_pair(a3[i].y,i));
-    }
-    for(int i=1;i<=n;++i) sgt1::T[i]=m+1;
-    for(int i=1;i<=n;++i)
-    {
-        for(auto j:b1[i]) sgt1::add(j.first,m-j.second+1);
-        for(auto j:b2[i]) h[j.second]=m-sgt1::sum(j.first)+1>j.second;
-    }
+#define mid ((l+r)>>1)
 
-    for(int i=1;i<=m+1;++i) b1[i].clear(),b2[i].clear();
-    for(int i=1;i<=n;++i)
-    {
-        b1[a1[i].t].push_back(make_pair(a1[i].x,1));
-    }
-    for(int i=1;i<=m;++i)
-    {
-        b2[i].push_back(make_pair(a3[i].x,i));
-    }
-    for(int i=1;i<=n;++i) sgt2::T[i]=0;
-    for(int i=m;i>=1;--i)
-    {
-        for(auto j:b1[i+1]) sgt2::add(j.first,j.second);
-        for(auto j:b2[i]) f[j.second]+=sgt2::sum(j.first);
-    }
+struct line
+{
+    int k,b;
 
-    for(int i=1;i<=m+1;++i) b1[i].clear(),b2[i].clear();
-    for(int i=1;i<=n;++i)
+    int f(int x)
     {
-        b1[a1[i].t].push_back(make_pair(a1[i].y,1));
+        return k*x+b;
     }
-    for(int i=1;i<=m;++i)
-    {
-        b2[i].push_back(make_pair(a3[i].y,i));
-    }
-    for(int i=1;i<=n;++i) sgt2::T[i]=0;
-    for(int i=m;i>=1;--i)
-    {
-        for(auto j:b1[i+1]) sgt2::add(j.first,j.second);
-        for(auto j:b2[i]) f[j.second]+=sgt2::sum(j.first);
-    }
+}mi[N];
 
-    for(int i=1;i<=n;++i) b1[i].clear(),b2[i].clear();
-    for(int i=1;i<=n;++i)
+void insert(int&x,int l,int r,line d)
+{
+    if(!x)x=++tot;
+    if(!vi[x]||(mi[x].f(l)>=d.f(l)&&mi[x].f(r)>=d.f(r))){mi[x]=d;vi[x]=1;return;}
+    if(mi[x].f(l)<=d.f(l)&&mi[x].f(r)<=d.f(r))return;
+    if(mi[x].f(mid)>=d.f(mid))swap(d,mi[x]);if(l==r)return;
+    if(d.f(l)<=mi[x].f(l))insert(ch[x][0],l,mid,d);else insert(ch[x][1],mid+1,r,d);
+}
+
+int find(int x,int l,int r,int d)
+{
+    if(!vi[x])return inf;
+    if(l==r)return mi[x].f(d);
+    return min(mi[x].f(d),(d<=mid?find(ch[x][0],l,mid,d):find(ch[x][1],mid+1,r,d)));
+}
+
+void clear()
+{
+    for(int i=1;i<=tot;i++)ch[i][0]=ch[i][1]=vi[i]=0;
+    tot=ro=0;
+}
+
+void solve(int l,int r,vector<int>tmp)
+{
+    if(tmp.empty())return;
+    if(l==r)
     {
-        b1[a1[i].x].push_back(make_pair(a1[i].y,1));
+        for(auto x:tmp)if(x*fir[l]+a[x]>=v[l])in[l].push_back(x);
+        return;
     }
-    for(int i=1;i<=m;++i)
+    for(int i=l;i<=mid;i++)insert(ro,1,n,(line){-fir[i],v[i]});
+    vector<int>L,R;
+    for(auto x:tmp)
     {
-        b2[a3[i].x].push_back(make_pair(a3[i].y,i));
+        if(a[x]>=find(1,1,n,x))L.push_back(x);
+        else R.push_back(x);
     }
-    for(int i=1;i<=n;++i) sgt2::T[i]=0;
-    for(int i=n;i>=1;--i)
+    clear();solve(l,mid,L);solve(mid+1,r,R);
+}
+
+int sum[N],ad[N],la[N],mx[N],mxad[N],val[N],num[N],tad[N],cm[N],siz[N];
+
+#define ls (x<<1)
+#define rs (x<<1|1)
+#define LS ls,l,mid
+#define RS rs,mid+1,r
+
+void up1(int x)
+{
+    sum[x]=sum[ls]+sum[rs];
+    ad[x]=ad[ls]+ad[rs];
+}
+
+void up2(int x)
+{
+    if(siz[rs])mx[x]=mx[rs],mxad[x]=mxad[rs];else mx[x]=mx[ls],mxad[x]=mxad[ls];
+    val[x]=val[ls]+val[rs];tad[x]=tad[ls]+tad[rs];siz[x]=siz[ls]+siz[rs];
+}
+
+void mk1(int x,int d)
+{
+    la[x]+=d;
+    sum[x]+=d*ad[x];
+}
+
+void mk2(int x,int d)
+{
+    num[x]+=d;
+    val[x]+=d*tad[x];
+    mx[x]+=d*mxad[x];
+}
+
+void mk3(int x,int w)
+{
+    if(!siz[x])return;
+    cm[x]=mx[x]=w;val[x]=w*siz[x];num[x]=0;
+}
+
+void down1(int x)
+{
+    if(!la[x])return;
+    mk1(ls,la[x]);mk1(rs,la[x]);
+    la[x]=0;
+}
+
+void down2(int x)
+{
+    if(cm[x]!=inf)mk3(ls,cm[x]),mk3(rs,cm[x]),cm[x]=inf;
+    if(num[x])mk2(ls,num[x]),mk2(rs,num[x]),num[x]=0;
+}
+
+void build(int x,int l,int r)
+{
+    cm[x]=inf;
+    if(l==r)
     {
-        for(auto j:b2[i]) f[j.second]+=sgt2::sum(n-j.first);
-        for(auto j:b1[i]) sgt2::add(n-j.first+1,j.second);
+        sum[x]=a[l];ad[x]=l;
+        return;
     }
-    
-    for(int i=1;i<=m;++i) b1[i].clear();
-    for(int i=1;i<=n;++i)
+    build(LS);build(RS);up1(x);
+}
+
+void del(int x,int l,int r,int d)
+{
+    if(l==r)
     {
-        b1[a1[i].t].push_back(make_pair(a1[i].x,a1[i].y));
+        sum[x]=la[x]=ad[x]=0;
+        return;
     }
-    for(int i=1;i<=m;++i)
+    down1(x);
+    if(d<=mid)del(LS,d);else del(RS,d);
+    up1(x);
+}
+
+void insert(int x,int l,int r,int d,int w)
+{
+    if(l==r)
     {
-        int l=fhq::num1(rt,a2[i].y),r=fhq::num2(rt,a2[i].x);
-        if(l!=1e9&&r!=1e9)
+        mx[x]=val[x]=w;tad[x]=mxad[x]=l;siz[x]=1;
+        return;
+    }
+    down2(x);
+    if(d<=mid)insert(LS,d,w);else insert(RS,d,w);
+    up2(x);
+}
+
+void solve(int x,int l,int r,int d)
+{
+    if(mx[x]<=d)return;
+    if(l==r)return mk3(x,d);
+    down2(x);
+    if(mx[ls]>=d)mk3(rs,d),solve(LS,d);
+    else solve(RS,d);
+    up2(x);
+}
+
+int find(int x,int l,int r,int L,int R)
+{
+    if(L<=l&&R>=r)return sum[x]+val[x];
+    down1(x);down2(x);
+    int ans=0;
+    if(L<=mid)ans+=find(LS,L,R);
+    if(R>mid)ans+=find(RS,L,R);
+    return ans;
+}
+
+main()
+{
+    // freopen("in.txt","r",stdin);
+    // freopen("out.txt","w",stdout);
+    cin>>n>>q;
+    for(int i=1;i<=n;i++)cin>>a[i],tmp.push_back(i);
+    for(int i=1;i<=q;i++)
+    {
+        cin>>Q[i].opt;
+        if(Q[i].opt==2)fir[m+1]++;
+        if(Q[i].opt==1)
         {
-            int x1,x2,x3;
-            fhq::split(rt,l-1,x1,x2);
-            fhq::split(x2,r,x2,x3);
-            if(a2[i].z==1)
-            {
-                fhq::T[x2].x2=a2[i].y;
-                fhq::T[x2].k2=a2[i].y;
-            }
-            else
-            {
-                fhq::T[x2].x1=a2[i].x;
-                fhq::T[x2].k1=a2[i].x;
-            }
-            rt=fhq::merge(fhq::merge(x1,x2),x3);
+            m++;fir[m+1]=fir[m];
+            cin>>Q[i].v;v[m]=Q[i].v;
         }
-        vector<pair<int,int>> p;
-        for(auto j:b1[i])
-        {
-            if(a2[i].z==1) j.second=max(j.second,a2[i].y);
-            else j.first=max(j.first,a2[i].x);
-            p.push_back(j);
-        }
-        fhq::add(p);
-        l=fhq::num1(rt,a3[i].y),r=fhq::num2(rt,a3[i].x);
-        if(l==1e9||r==1e9||l>r)
-        {
-            if(h[i]==false) f[i]=0;
-        }
-        else
-        {
-            int x1,x2,x3;
-            fhq::split(rt,l-1,x1,x2);
-            fhq::split(x2,r,x2,x3);
-            f[i]+=fhq::T[x2].s;
-            rt=fhq::merge(fhq::merge(x1,x2),x3);
-        }
-        print(f[i]);
-        putchar('\n');
+        if(Q[i].opt==3)cin>>Q[i].l>>Q[i].r;
     }
-    return 0;
+    if(m)solve(1,m,tmp);
+    build(1,1,n);m=0;
+    for(int i=1;i<=q;i++)
+    {
+        if(Q[i].opt==1)
+        {
+            ++m;
+            solve(1,1,n,v[m]);
+            for(auto x:in[m])del(1,1,n,x),insert(1,1,n,x,v[m]);
+        }
+        if(Q[i].opt==2)mk1(1,1),mk2(1,1);
+        if(Q[i].opt==3)cout<<find(1,1,n,Q[i].l,Q[i].r)<<'\n';
+    }
 }
