@@ -1,0 +1,4 @@
+PS D:\csp\!zsq> g++ ‐o gra gra.cpp word.cpp
+D:/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../x86_64-w64-mingw32/bin/ld.exe: cannot find ‐o: No such file or directory
+D:/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/13.1.0/../../../../x86_64-w64-mingw32/bin/ld.exe: cannot find gra: No such file or directory
+collect2.exe: error: ld returned 1 exit status
