@@ -1,65 +1,71 @@
 #include<bits/stdc++.h>
+#define int long long
 using namespace std;
-const int N=5e3+50;
+const int N=2e6+50,mod=998244353;
 
-struct node
+int T,n,a[N],c,cm[N],mi[N];
+
+#define ls (x<<1)
+#define rs (x<<1|1)
+#define mid ((l+r)>>1)
+
+int chk(int x,int y)
 {
-    int l,r;
-}p[N];
-
-int T,n,a[N],tot,b[N];
-
-void print()
-{
-    cout<<tot<<'\n';
-    for(int i=1;i<=tot;i++)cout<<p[i].l<<' '<<p[i].r<<'\n';
-    // for(int i=1;i<=n;i++)cout<<a[i]<<' ';
+    return a[x]<a[y]?x:y;
 }
 
-void mk(int l,int r)
+void build(int x,int l,int r)
 {
-    int cc=0;
-    for(int i=n-r+1;i<=n;i++)b[++cc]=a[i];
-    for(int i=l+1;i<=n-r;i++)b[++cc]=a[i];
-    for(int i=1;i<=l;i++)b[++cc]=a[i];
-    swap(a,b);p[++tot]=(node){l,r};
+    if(l==r)return mi[x]=l,void();
+    build(ls,l,mid);build(rs,mid+1,r);
+    mi[x]=chk(mi[ls],mi[rs]);
+}
+
+void insert(int x,int l,int r,int d)
+{
+    if(l==r)return mi[x]=l,void();
+    if(d<=mid)insert(ls,l,mid,d);
+    else insert(rs,mid+1,r,d);
+    mi[x]=chk(mi[ls],mi[rs]);
+}
+
+int find(int x,int l,int r,int L,int R)
+{
+    if(L<=l&&R>=r)return mi[x];
+    if(L>mid)return find(rs,mid+1,r,L,R);
+    if(R<=mid)return find(ls,l,mid,L,R);
+    return chk(find(ls,l,mid,L,R),find(rs,mid+1,r,L,R));
+}
+
+int solve(int l,int r,int x,int y)
+{
+	// printf("%d %d %d %d\n",l,r,x,y);
+    if(l>n||r<1)return 1;
+    if(x+y>r-l+1)return cm[r-l+1];
+    if(r-l+1<=c)return cm[x]*cm[y]%mod;
+    int pos=find(1,1,n,l,r);
+    if(pos>l+x-1&&pos<r-y+1)return solve(l,pos-1,x,(pos-l>=c)?c:0)*solve(pos+1,r,(r-pos>=c)?c:0,y)%mod;
+    if(pos<l+x)
+    {
+        swap(a[pos],a[l]);insert(1,1,n,l);insert(1,1,n,pos);
+        return solve(l+1,r,c+x-1,y)*x%mod;
+    }
+    swap(a[pos],a[r]);insert(1,1,n,r);insert(1,1,n,pos);
+    return solve(l,r-1,x,y+c-1)*y%mod;
 }
 
 void sol()
 {
-    cin>>n;tot=0;
-    for(int i=1;i<=n;i++)cin>>a[i];
-    if(n==3)
-    {
-        if(a[1]>a[3])mk(1,1);
-        return;
-    }
-    int pos=1;
-    for(int i=2;i<=n;i++)if(a[i]==1)pos=i;
-    if(pos==2)mk(2,1),mk(1,1);
-    if(pos>2)mk(1,n-pos+1);
-    for(int i=2;i<n;i++)
-    {
-        int x=a[n],t=1;
-        for(int j=1;j<=i;j++)if(a[j]<x)t=j;
-        if(t==i&&n==i+1)continue;
-        if(t>=n-2)break;
-        mk(t,2);mk(1,t);
-    }
-    if(a[n]==n&&a[n-1]!=n-1)
-    {
-        int x=a[n-1]-1,y=n-1-a[n-1];
-        mk(x,2);mk(1,x+y);mk(y,1);mk(1,y+1);mk(1,x+1);
-        return;
-    }
-    if(a[n]==n)return;
-    mk(1,1);mk(n-2,1);mk(2,n-3);mk(n-3,1);mk(1,n-2);
+    cin>>n>>c;
+    cm[0]=1;
+    for(int i=1;i<=n;i++)cin>>a[i],cm[i]=cm[i-1]*i%mod;
+    build(1,1,n);
+    cout<<solve(1,n,0,0)<<'\n';
 }
 
 main()
 {
     // freopen("in.txt","r",stdin);
-    // freopen("out.txt","w",stdout);
     cin>>T;
-    while(T--)sol(),print();
+    while(T--)sol();
 }

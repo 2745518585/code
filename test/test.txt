@@ -1,8 +1,1 @@
-QBG
-BBBWBWWW
-
-QB
-BB
-BB
-BW
-WW
+1 1 4 5 4 4 4 9 9 9 8 1 1

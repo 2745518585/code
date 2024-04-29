@@ -9,12 +9,11 @@ int main(int argc,char **argv)
     cout<<T<<"\n";
     while(T--)
     {
-        int n=rnd(1,5),m=rnd(1,5);
+        int n=rnd(5e5,5e5),m=rnd(5,5);
         cout<<n<<" "<<m<<"\n";
-        for(int i=1;i<=m;++i)
-        {
-            cout<<rnd(1,n)<<" "<<rnd(1,n)<<"\n";
-        }
+        auto a=rnd_range(n);
+        for(auto i:a) cout<<i<<" ";
+        cout<<"\n";
     }
     return 0;
 }
