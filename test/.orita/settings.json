@@ -6,6 +6,6 @@
             "-Wl,--stack=2147483648",
             "-D JUDGING"
         ],
-        "data_dir": "./.data"
+        "data_dir": "%{SETTINGS_PATH}%/.data"
     }
 }

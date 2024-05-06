@@ -1,134 +1,152 @@
+#pragma GCC optimize("Ofast","inline")
 #include<bits/stdc++.h>
+#define int long long
 using namespace std;
-const int N=500;
+const int N=5e5+500,mod=998244353;
 
-int n,a[N],b[N],ans=1e9,m,c[N],ro[N],tl[N],tr[N],pos[N],val[N],l,r;
-vector<int>sa[N],sb[N];set<int>re;
-
-int find(int x)
+struct edge
 {
-    return ro[x]==x?x:ro[x]=find(ro[x]);
-}
+    int u,v,nxt;
+}e[N];
 
-void merge(int x,int y)
+struct node
 {
-    ro[find(x)]=find(y);
-}
+    int a,b;
 
-int chk(int l1,int r1,int l2,int r2)
-{
-    if(l1>l2)swap(l1,l2),swap(r1,r2);
-    return r1<r2;
-}
-
-int mk(int x,int ty)
-{
-    if(val[x]&&val[x]!=ty)return 1;
-    val[x]=ty;
-    pos[x]=ty==1?tl[x]:tr[x];
-    return 0;
-}
-
-int base()
-{
-    while(1)
+    node operator+(node x)
     {
-        int f=0;
-        for(auto x:re)
-        {
-            int p1=0,p2=1e9;
-            for(int i=l+1;i<x;i++)p1=pos[i]?pos[i]:p1;
-            for(int i=m-r;i>x;i--)p2=pos[i]?pos[i]:p2;
-            if(p1>tr[x])return 1;
-            if(p2<tl[x])return 1;
-            if(p1>tl[x]&&p2<tr[x])return 1;
-            if(p1>tl[x])val[x]=2,pos[x]=tr[x],f=1;
-            if(p2<tr[x])val[x]=1,pos[x]=tl[x],f=1;
-            if(f)
-            {
-                re.erase(x);
-                break;
-            }
-        }
-        if(!f)break;
+        return (node){(x.a+a)%mod,(x.b+b)%mod};
     }
-    return 0;
+
+    void mul(int x)
+    {
+        a=a*x%mod;b=b*x%mod;
+    }
+}f[N][3],s[N][3],las[N][2],w[N],lw[N];
+
+node merge(node a,node b)
+{
+    return (node){(a.a*b.b%mod+a.b*b.a%mod)%mod,a.b*b.b%mod};
 }
 
-int chk()
+int n,k,head[N],cnt,in[N],inv1,inv2,ans,ro,vis[N],st[N],top,C;
+
+int ksm(int a,int b)
 {
-    for(int i=1;i<=m;i++)c[i]=pos[i]=val[i]=0,ro[i]=i;
-    for(int i=1;i<=l;i++)c[b[i]]++;
-    for(int i=1;i<=n;i++)if(c[i]>=3)return 0;
-    for(int i=1;i<=n;i++)c[i]=0;
-    for(int i=1;i<=r;i++)c[b[m-i+1]]++;
-    for(int i=1;i<=n;i++)if(c[i]>=3)return 0;
-    for(int i=1;i<=l;i++)c[b[i]]++;
-    re.clear();
-    for(int i=1;i<=n;i++)
+    int ans=1;
+    while(b)
     {
-        vector<int>&p=sb[i],&q=sa[i];
-        if(c[i]==0)
-        {
-            for(int j=0;j<3;j++)pos[p[j]]=q[j];
-            continue;
-        }
-        if(c[i]==1)
-        {
-            if(p[0]<=l)pos[p[1]]=q[0],pos[p[2]]=q[2];
-            else pos[p[0]]=q[0],pos[p[1]]=q[2];
-            continue;
-        }
-        if(c[i]==3)continue;
-        if(p[1]<=l)
-        {
-            pos[p[2]]=q[2];
-            continue;
-        }
-        if(p[1]>=m-r+1)
-        {
-            pos[p[0]]=q[0];
-            continue;
-        }
-        pos[p[1]]=0;
-        tl[p[1]]=p[0],tr[p[1]]=p[2];
+        if(b&1)ans=ans*a%mod;
+        b>>=1;a=a*a%mod;
     }
-    for(int la=0,i=l+1;i<=m-r;i++)
+    return ans;
+}
+
+void merge(node*f,node*h)
+{
+    node g[3];for(int i=0;i<3;i++)g[i]=f[i];
+    for(int j=0;j<3;j++)
+    for(int p=0;p<3;p++)
     {
-        if(pos[i])
-        {
-            if(pos[i]<la)return 0;
-            la=pos[i];
-        }
-        else re.insert(i);
+        node re=merge(g[j],h[p]);
+        if(j==1)re.mul(inv1);if(p==1)re.mul(inv1);
+        int to=min(j+1,2ll);
+        f[to]=f[to]+re;
     }
-    for(auto x:re)for(auto y:re)if(x!=y&&chk(tl[x],tr[x],tl[y],tr[y]))merge(x,y);
-    for(auto x:re)tl[x]=sa[b[x]][0],tr[x]=sa[b[x]][2];
-    if(base())return 0;
-    for(auto x:re)for(auto y:re)if(y>x)
+}
+
+void dfs(int x,int fa)
+{
+    f[x][0]=(node){k*inv2%mod,k*inv2%mod};
+    for(int i=head[x];i;i=e[i].nxt)
     {
-        int l1=tl[x],r1=tr[x],l2=tl[y],r2=tr[y];
-        if(l2>r1)continue;
-        if(r2<l1)return 0;
-        if(r1>r2&&mk(x,1))return 0;
-        if(l2<l1&&mk(y,2))return 0;
+        int v=e[i].v;
+        if(in[v]==2||v==fa)continue;
+        dfs(v,x);merge(f[x],f[v]);
     }
-    if(base())return 0;
-    for(auto x:re)if(val[x]&&mk(find(x),val[x]))return 0;
-    return 1;
+    if(in[x]!=2)for(int i=0;i<3;i++)ans+=f[x][i].a;
+}
+
+void find(int x)
+{
+    vis[x]=1;st[++top]=x;
+    for(int i=head[x];i;i=e[i].nxt)
+    {
+        int v=e[i].v;
+        if(in[v]==2&&!vis[v])return find(v);
+    }
 }
 
 main()
 {
-    cin>>n;m=3*n;
-    for(int i=1;i<=m;i++)cin>>a[i],sa[a[i]].push_back(i);
-    for(int i=1;i<=m;i++)cin>>b[i],sb[b[i]].push_back(i);
-    for(int i=0;i<=m;i++)
-    for(int j=0;j+i<=m;j++)if(i+j<ans)
+    cin>>n>>k;
+    inv1=ksm(k,mod-2),inv2=ksm(1-k,mod-2);C=ksm(1-k,n);
+    for(int i=1;i<=n;i++)
     {
-        l=i,r=j;
-        if(chk())ans=min(ans,i+j);
+        int u,v;cin>>u>>v;++in[u],++in[v];
+        e[++cnt]=(edge){u,v,head[u]};head[u]=cnt;
+        e[++cnt]=(edge){v,u,head[v]};head[v]=cnt;
     }
-    cout<<(ans>m?-1:ans);
+    queue<int>q;
+    for(int i=1;i<=n;i++)if(in[i]==1)q.push(i);
+    while(!q.empty())
+    {
+        int x=q.front();q.pop();
+        for(int i=head[x];i;i=e[i].nxt)
+        {
+            int v=e[i].v;--in[v];
+            if(in[v]==1)q.push(v);
+        }
+    }
+    for(int i=1;i<=n;i++)if(in[i]==2)dfs(i,0),ro=i;
+    find(ro);
+    for(int i=1;i<=top;i++)for(int j=0;j<3;j++)s[i][j]=f[st[i]][j];
+    for(int i=1;i<=top;i++)for(int j=0;j<3;j++)f[i][j]=s[i][j];
+    for(int i=top;i>=1;i--)
+    {
+        if(i!=top)merge(s[i],s[i+1]);
+        int val=0;
+        for(int j=0;j<3;j++)val+=s[i][j].a;
+        ans+=val;
+    }
+    node tmp;
+    for(int i=1;i<=top;i++)
+    {
+        w[i]=f[i][0]+f[i][1];w[i].mul(inv1);
+        w[i]=w[i]+f[i][2];
+        if(i==1)tmp=w[i];else tmp=merge(tmp,w[i]);
+    }
+    ans=ans+tmp.a;
+    for(int i=top;i>=1;i--)
+    {
+        las[i][0]=f[i][0];
+        las[i][1]=f[i][1];las[i][1].mul(inv1);
+        las[i][1]=las[i][1]+f[i][2];
+        if(i==top)continue;
+        node a=las[i][0],b=las[i][1];
+        las[i][0]=merge(a,las[i+1][0]);las[i][0].mul(inv1);las[i][0]=las[i][0]+merge(a,las[i+1][1]);
+        las[i][1]=merge(b,las[i+1][0]);las[i][1].mul(inv1);las[i][1]=las[i][1]+merge(b,las[i+1][1]);
+    }
+    for(int i=top;i>=1;i--)lw[i]=lw[i+1]+las[i][0]+las[i][1];
+    for(int i=1;i<top;i++)
+    {
+        int val=lw[i+1].a;
+        node now;
+        now=f[i][1];now.mul(inv1);
+        now=now+f[i][0]+f[i][2];
+        if(i==1)
+        {
+            now=merge(now,lw[i+1]);
+            ans+=now.a;
+        }
+        else
+        {
+            now=merge(now,tmp);
+            now=merge(now,lw[i+1]);
+            ans+=now.a;
+        }
+        if(i==1)tmp=w[i];
+        else tmp=merge(tmp,w[i]);
+    }
+    cout<<(ans%mod*C%mod+mod)%mod;
 }
-
