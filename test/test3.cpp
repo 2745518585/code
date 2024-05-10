@@ -1,81 +1,105 @@
-#include<cstdio>
-#include<algorithm>
-#include<cstring>
-#include<deque>
+#include <bits/stdc++.h>
 using namespace std;
-const int N=510001;
-int n,q,b[N],c[N],S[N],T;
-char a[N],d[N];
-bool h[N];
-deque<int> *f[N];
-bool check(const deque<int> &a,const deque<int> &b)
+using ll = long long;
+const int N = 2e5 + 5;
+struct State
 {
-    for(int i=0;i<a.size()&&i<b.size();++i)
+    int u;
+    ll d;
+    State(int u, ll d)
+        : u(u), d(d) {}
+    bool operator<(const State &s) const
     {
-        if(a[i]!=b[i]) return a[i]<b[i];
+        return d > s.d;
     }
-    return true;
-}
-void merge(int x,int y)
+};
+priority_queue<State> q;
+int a[N];
+ll dis[N];
+vector<int> adj[N];
+int n, k;
+struct Centroid
 {
-    if(f[y]==NULL) swap(f[x],f[y]);
-    if(f[x]==NULL) return;
-    if(check(*f[x],*f[y]))
+    vector<int> vert[N];
+    int siz[N], par[N], vis[N], cur[N], dep[N], h[20][N];
+    int find(int u, int p, int s)
     {
-        if(f[x]->size()<f[y]->size())
-        {
-            while(!f[x]->empty()) f[y]->push_front(f[x]->back()),f[x]->pop_back();
-        }
-        else
-        {
-            while(!f[y]->empty()) f[x]->push_back(f[y]->front()),f[y]->pop_front();
-            swap(f[y],f[x]);
-        }
+        for (int v : adj[u])
+            if (!vis[v] && v != p)
+                if (siz[v] > s) return find(v, u, s);
+        return u;
     }
-}
-int main()
-{
-    scanf("%s",a+1);
-    n=strlen(a+1);
-    for(int i=1;i<=n;++i)
+    int size(int u, int p = -1)
     {
-        if(a[i]=='(') S[++T]=i;
-        else
-        {
-            c[i]=S[T];
-            h[c[i]]=true;
-            if(T>=1) --T;
-        }
+        siz[u] = 1, par[u] = p;
+        for (int v : adj[u])
+            if (!vis[v] && v != p)
+                siz[u] += size(v, u);
+        return siz[u];
     }
-    int p=0;
-    for(int i=1;i<=n;++i)
+    void solve(int u = 0, int p = -1, int d = 0)
     {
-        if(a[i]=='(') continue;
-        int z=c[i];
-        if(c[i]==0) z=p,p=i;
-        f[i]=new deque<int>;
-        int x=i-1;
-        while(x>z)
+        int c = find(u, -1, size(u) / 2);
+        par[c] = p, cur[c] = 0, dep[c] = d;
+        queue<pair<int, int>> q;
+        q.emplace(c, -1);
+        while (!q.empty())
         {
-            merge(x,i);
-            x=c[x]-1;
+            int u = q.front().first, p = q.front().second;
+            q.pop();
+            vert[c].emplace_back(u);
+            for (int v : adj[u])
+                if (!vis[v] && v != p)
+                    q.emplace(v, u), h[d][v] = h[d][u] + 1;
         }
-        if(a[z]=='(') f[i]->push_front(0);
-        if(a[i]==')') f[i]->push_back(1);
+        vis[c] = 1;
+        for (int v : adj[c])
+            if (!vis[v])
+                solve(v, c, d + 1);
     }
-    for(int i=1;i<=n;++i)
+    void update(int u, ll d)
     {
-        if(a[i]=='(')
+        for (int v = u; ~v; v = par[v])
         {
-            if(h[i]==false) printf("(");
-        }
-        else
-        {
-            if(c[i]==0)
+            int i = dep[v];
+            for (; cur[v] < vert[v].size(); ++cur[v])
             {
-                for(auto j:*f[i]) printf("%c",'('+j);
+                int t = vert[v][cur[v]];
+                if (h[i][u] + h[i][t] > k) break;
+                if (d + a[t] < dis[t])
+                    dis[t] = d + a[t],
+                    q.emplace(t, dis[t]);
             }
         }
     }
+
+} ct;
+int main()
+{
+    //	freopen("vcl.inp","r",stdin);
+    //	freopen("vcl.ans","w",stdout);
+    cin.tie(0)->sync_with_stdio(0);
+    cout.tie(0);
+    cin >> n >> k;
+    for (int i = 0; i < n; ++i)
+        cin >> a[i];
+    for (int i = 0, u, v; i < n - 1; ++i)
+        cin >> u >> v, u--, v--,
+            adj[u].emplace_back(v),
+            adj[v].emplace_back(u);
+    ct.solve();
+    memset(dis, 0x3f, sizeof(dis));
+    q.emplace(0, 0);
+    dis[0] = 0;
+    a[0] = 0;
+    while (!q.empty())
+    {
+        auto s = q.top();
+        q.pop();
+        if (s.d != dis[s.u]) continue;
+        ct.update(s.u, s.d);
+    }
+    for (int v = 0; v < n; ++v)
+        cout << dis[v] << " \n"[v == n - 1];
     return 0;
 }

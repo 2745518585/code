@@ -19,6 +19,15 @@ void road(int x,int y,int w)
     t[x]=p;
     a[p].w=w;
 }
+void dfs0(int x,int fa)
+{
+    ++q;
+    for(int i=t[x];i!=0;i=a[i].q)
+    {
+        if(a[i].m==fa||g[a[i].m]) continue;
+        dfs0(a[i].m,x);
+    }
+}
 void dfs1(int x,int fa)
 {
     T[x].s=1;
@@ -68,7 +77,8 @@ void solve(int x)
 void dfs(int x)
 {
     r=0;
-    q=T[x].s;
+    q=0;
+    dfs0(x,0);
     dfs1(x,0);
     solve(r);
     g[r]=true;
