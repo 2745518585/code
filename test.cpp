@@ -1,38 +1,41 @@
-#include<iostream>
-#include<cmath>
+#include<bits/stdc++.h>
+#define int long long
 using namespace std;
-long long n;
-int len;
-int lim;
-int lenp;
-long long a[7000000];
-long long g[7000000];
-inline int get_index(long long x)
+const int N=8e6;
+
+int n,m,k,mod,cm[N],icm[N],ans;
+
+int ksm(int a,int b)
 {
-    if(x<=lim)
-        return x;
-    else
-        return len-n/x+1;
+    int ans=1;
+    while(b)
+    {
+        if(b&1)ans=ans*a%mod;
+        b>>=1;a=a*a%mod;
+    }
+    return ans;
 }
-int main()
+
+int binom(int n,int m)
 {
-    cin>>n;
-    lim=sqrt(n);
-    for(long long i=1;i<=n;i=a[len]+1)
+    if(m>n)return 0;
+    return cm[n]*icm[m]%mod*icm[n-m]%mod;
+}
+
+signed main()
+{
+    // freopen("in.txt","r",stdin);
+    cin>>n>>m>>k>>mod;
+    cm[0]=1;
+    for(int i=1;i<N;i++)cm[i]=cm[i-1]*i%mod;
+    icm[N-1]=ksm(cm[N-1],mod-2);
+    for(int i=N-1;i;i--)icm[i-1]=icm[i]*i%mod;
+    if(k==n+m-1)
     {
-        a[++len]=n/(n/i);
-        g[len]=a[len]-1;
+        cout<<binom(n+m,n);
+        return 0;
     }
-    for(int i=2;i<=lim;++i)
-    {
-        if(g[i]!=g[i-1])
-        {
-            ++lenp;
-            for(int j=len;a[j]>=1ll*i*i;--j)
-                g[j]=g[j]-g[get_index(a[j]/i)]+lenp-1;
-        }
-        
-    }
-    cout<<g[len];
-    return 0;
+    for(int i=0;i<=k;i++)ans=(ans+binom(k,i)*binom(n+m-1-k+i,n)%mod*binom(n+m-1-i,m)%mod)%mod;
+    ans=2*(k+1)*ksm(n+m-1-k,mod-2)%mod*ans%mod;
+    cout<<ans;
 }
