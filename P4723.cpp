@@ -2,6 +2,19 @@
 #include<algorithm>
 using namespace std;
 typedef long long ll;
+inline char gc()
+{
+    static char buf[100000],*p1=buf,*p2=buf;
+    return p1==p2&&(p2=(p1=buf)+fread(buf,1,100000,stdin),p1==p2)?EOF:*p1++;
+}
+template<typename T> inline void read(T &x)
+{
+    T u=1,t=0;char c=gc();
+    while(c<'0'||c>'9') {if(c=='-') u=-1; c=gc();}
+    while(c>='0'&&c<='9') t*=10,t+=c-'0',c=gc();
+    x=u*t;return;
+}
+template<typename T,typename ...O> inline void read(T &x,O &...o) {read(x),read(o...);}
 const int N=3000001;
 const ll P=998244353;
 int n,m;
@@ -63,7 +76,7 @@ struct poly
         resize(0);
         a[0]=x;
     }
-    poly(const poly& p)
+    poly(const poly &p)
     {
         if(this!=&p)
         {
@@ -133,8 +146,10 @@ struct poly
                 for(int k=j;k<i+j;++k)
                 {
                     ll q=w*a[k+i]%P;
-                    a[k+i]=(a[k]-q)%P;
-                    a[k]=(a[k]+q)%P;
+                    a[k+i]=a[k]-q;
+                    if(a[k+i]<0) a[k+i]+=P;
+                    a[k]=a[k]+q;
+                    if(a[k]>=P) a[k]-=P;
                     w=w*t%P;
                 }
             }
@@ -177,16 +192,42 @@ struct poly
         return getinv(n);
     }
 };
+poly check(const poly &a,const poly &b,poly rb)
+{
+    if(a.n<b.n) return a;
+    poly ra=a;
+    for(int i=0;i<=a.n/2;++i) swap(ra[i],ra[a.n-i]);
+    poly w=(ra.resize(a.n-b.n)*rb.resize(a.n-b.n)).resize(a.n-b.n);
+    for(int i=0;i<=w.n/2;++i) swap(w[i],w[w.n-i]);
+    return (a-b*w.resize(b.n-1)).resize(b.n-1);
+}
+poly qpow(const poly &a,ll b,const poly &P)
+{
+    poly rP=P;
+    for(int i=0;i<=P.n/2;++i) swap(rP[i],rP[P.n-i]);
+    rP=rP.getinv();
+    poly x=1,y=a;
+    while(b)
+    {
+        if(b&1) x=check(x*y,P,rP);
+        y=check(y*y,P,rP);
+        b>>=1;
+    }
+    return x;
+}
 int main()
 {
-    scanf("%d",&n);
-    poly a;
-    a.resize(n-1);
-    for(int i=0;i<=a.n;++i)
+    scanf("%d%d",&n,&m);
+    poly a((len)(m-1)),b((len)m);
+    for(int i=m-1;i>=0;--i) scanf("%lld",&b[i]);
+    for(int i=0;i<=m-1;++i) scanf("%lld",&a[i]);
+    b[m]=-1;
+    poly p=qpow({0,1},n,b);
+    ll s=0;
+    for(int i=0;i<=m-1;++i)
     {
-        scanf("%lld",&a.a[i]);
+        s=(s+a[i]*p[i]%P)%P;
     }
-    poly b=a.getinv();
-    b.print();
+    printf("%lld",(s%P+P)%P);
     return 0;
 }

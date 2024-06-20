@@ -1,86 +1,218 @@
 #pragma GCC optimize("Ofast","inline")
 #include<bits/stdc++.h>
+#define int long long
 using namespace std;
-const int N=3e5+50,M=560;
+const int N=1e6+50;
 
-struct node
-{
-    int x,l,r,y;
-}Q[N];
-
-struct ask
+struct poi
 {
     int x,y;
-}t[N];
 
-int n,q,S=500,a[N],m,c,ans[N],vis[N],L[M],D[N],U[N],R[M],pre[M],s[N],f[N],tmp[N];
-vector<pair<int,int>>in[N];
-
-void solve(int l,int r)
-{
-    int w=r-l,h=0;
-    for(int i=l;i<=r;i++)D[i-l]=a[i];
-    s[0]=1;
-    for(int i=1;i<=m;i++)if(Q[i].l<=l&&Q[i].r>=r)s[i]=1;
-    for(int i=1,now=0;i<=m;i++)
+    friend poi operator+(poi a,poi b)
     {
-        if(Q[i].l<=l-1&&Q[i].r>l-1)now^=pre[i-1];
-        if(s[i])L[++h]=now,now=0;
+        return (poi){a.x+b.x,a.y+b.y};
     }
-    for(auto&x:in[r])while(!s[x.second])x.second--;
-    for(int i=0;i<=h*2;i++)f[i]=0;
-    for(int i=0;i<=w;i++)f[i]=D[w-i];
-    for(int i=0;(1<<i)<=h;i++)for(int j=0;j<=h;j++)if((j>>i)&1)f[j]^=f[j^(1<<i)];
-    for(int i=0;i<=h;i++)R[i]=f[i];
-    for(int i=0;i<=h*2;i++)f[i]=0;
-    for(int i=0;i<=h;i++)f[h-i]=L[i];
-    for(int i=0;(1<<i)<=h;i++)for(int j=0;j<=h;j++)if(!((j>>i)&1))f[j]^=f[j^(1<<i)];
-    for(int i=0;i<=min(h,w);i++)U[i]=f[i];
-    for(int i=0;i<=w;i++)f[i]=D[i];
-    for(int i=0;(1<<i)<=w;i++)if((h>>i)&1)
-    for(int j=w-(1<<i);j>=0;j--)f[j+(1<<i)]^=f[j];
-    for(int i=0;i<=w;i++)U[i]^=f[i];
-    for(int i=0;i<=h;i++)f[i]=0;
-    for(int i=0;i+w<=h;i++)f[i+w]=L[i];
-    for(int i=0;(1<<i)<=h;i++)if(!((w>>i)&1))
-    for(int j=h-(1<<i);j>=0;j--)f[j+(1<<i)]^=f[j];
-    for(int i=0;i<=h;i++)R[i]^=f[i];
-    for(int i=0,now=-1;i<=m;i++)pre[i]=R[now+=s[i]];
-    for(int i=0;i<=w;i++)a[i+l]=U[i];
-    for(auto x:in[r])ans[x.first]=pre[x.second];
-    for(int i=0;i<=h;i++)L[i]=R[i]=0;
-    for(int i=0;i<=w;i++)U[i]=D[i]=0;
-    for(int i=1;i<=m;i++)s[i]=0;
-    if(r==n)for(int i=0;i<=m;i++)pre[i]=0;
+
+    friend poi operator-(poi a,poi b)
+    {
+        return (poi){a.x-b.x,a.y-b.y};
+    }
+
+    int operator^(poi b)
+    {
+        return x*b.y-y*b.x;
+    }
+
+    int len()
+    {
+        return x*x+y*y;
+    }
+
+    friend bool operator<(poi a,poi b)
+    {
+        int w=a^b;
+        return w==0?a.len()>b.len():w<0;
+    }
+    
+    int operator*(poi b)
+    {
+        return x*b.x+y*b.y;
+    }
+}a[N];
+
+struct query
+{
+    poi x;int c,id,p;
+    
+    friend bool operator<(query a,query b)
+    {
+        return a.x<b.x;
+    }
+}Q[N];
+
+int n,q,ans[N];
+vector<poi>p[N];
+poi st[N<<3];
+
+#define ls (x<<1)
+#define rs (x<<1|1)
+#define mid ((l+r)>>1)
+#define LS ls,l,mid
+#define RS rs,mid+1,r
+
+struct convex
+{
+    vector<poi>p;
+    int pos;
+
+    void merge1(convex a,convex b)// mink
+    {
+        vector<poi>().swap(p);
+        p.resize(a.p.size()+b.p.size());
+        int pos=0,cc=0;
+        for(auto x:a.p)
+        {
+            while(pos<b.p.size()&&b.p[pos]<x)p[cc++]=b.p[pos++];
+            p[cc++]=x;
+        }
+        while(pos<b.p.size())p[cc++]=b.p[pos++];
+    }
+    
+    void merge2(convex a,convex b)// convex hull
+    {
+        vector<poi>().swap(p);
+        int cc=0,pos=0;
+        for(auto x:a.p)
+        {
+            while(pos<b.p.size()&&(x.x>b.p[pos].x||(x.x==b.p[pos].x&&x.y>b.p[pos].y)))st[cc++]=b.p[pos++];
+            st[cc++]=x;
+        }
+        while(pos<b.p.size())st[cc++]=b.p[pos++];
+        if(cc==0)return;
+        int top=0;
+        for(int i=1;i<cc;i++)
+        {
+            while(top&&((st[i]-st[top-1])^(st[top]-st[top-1]))<=0)top--;
+            st[++top]=st[i];
+        }
+        p.resize(top+1);
+        for(int i=0;i<=top;i++)p[i]=st[i];
+    }
+
+    void diff()
+    {
+        for(int i=p.size()-1;i>0;i--)p[i]=p[i]-p[i-1];
+    }
+    
+    void integral()
+    {
+        for(int i=1;i<p.size();i++)p[i]=p[i]+p[i-1];
+    }
+
+    int find(poi x)
+    {
+        if(p.empty())return 0;
+        int w=x*p[pos];
+        while(pos+1<p.size()&&w<=x*p[pos+1])w=x*p[++pos];
+        return w;
+    }
+}f[N],g[N],tmp;
+
+void build(int x,int l,int r)
+{
+    if(l==r)
+    {
+        sort(p[l].begin(),p[l].end(),[&](poi a,poi b){return a.x==b.x?a.y<b.y:a.x<b.x;});
+        f[x].merge2((convex){p[l]},(convex){});
+        g[x]=f[x];
+        for(auto&t:g[x].p)t=t+a[l];
+        f[x].diff();
+        return;
+    }
+    build(LS);build(RS);
+    f[x].merge1(f[ls],f[rs]);
+    tmp=g[ls];tmp.diff();
+    tmp.merge1(tmp,f[rs]);
+    tmp.integral();
+    g[x].merge2(tmp,g[rs]);
 }
 
-void solve()
+int c;poi t;
+
+int solve(int x,int l,int r,int L,int R)
 {
-    vis[n]=1;
-    for(int i=1;i<=m;i++)vis[Q[i].l-1]=vis[Q[i].r]=1;
-    for(int i=1;i<=c;i++)vis[t[i].y]=1,in[t[i].y].push_back(make_pair(i,t[i].x));
-    for(int i=1,la=1;i<=n;i++)if(vis[i])solve(la,i),la=i+1;
-    for(int i=1;i<=c;i++)cout<<ans[i]<<'\n';
-    for(int i=1;i<=n;i++)vis[i]=0,in[i].clear();
-    m=c=0;
+    if(L>R)return -1;
+    if(L<=l&&R>=r)
+    {
+        if(g[x].find(t)<c)
+        {
+            c-=f[x].find(t);
+            return -1;
+        }
+        if(l==r)return l;
+        int w=solve(RS,L,R);
+        return w==-1?solve(LS,L,R):w;
+    }
+    if(R>mid)
+    {
+        int w=solve(RS,L,R);
+        if(w!=-1)return w;
+    }
+    return solve(LS,L,R);
 }
+
+void dfs(int x,int l,int r)
+{
+    f[x].integral();
+    if(l==r)return;
+    dfs(LS);dfs(RS);
+}
+
+namespace IO {
+#define iL (1 << 20)
+char ibuf[iL], *iS = ibuf + iL, *iT = ibuf + iL;
+#define gc() ((iS == iT) ? (iT = (iS = ibuf) + fread(ibuf, 1, iL, stdin), iS == iT ? EOF : *iS ++) : *iS ++)
+template<class T> inline void read(T &x) {
+  x = 0;int f = 0;char ch = gc();
+  for (; !isdigit(ch); f |= ch == '-', ch = gc());
+  for (; isdigit(ch); x = (x << 1) + (x << 3) + (ch ^ 48), ch = gc());
+  x = (f == 1 ? ~ x + 1 : x);
+}
+template<class T, class... Args> inline void read(T &x, Args&... args) { read(x), read(args...); }
+template<class T> inline void readch(T &x) { char ch = gc(); for (; !isalpha(ch); ch = gc()); x = ch; }
+char Out[iL], *iter = Out;
+#define flush() fwrite(Out, 1, iter - Out, stdout), iter = Out
+template<class T> inline void write(T x, char ch = '\n') {
+  T l, c[35];
+  if (x < 0) *iter ++ = '-', x = ~ x + 1;
+  for (l = 0; !l || x; c[l] = x % 10, l++, x /= 10);
+  for (; l; -- l, *iter ++ = c[l] + '0');*iter ++ = ch;
+  flush();
+}
+template<class T, class... Args> inline void write(T x, Args... args) { write(x, ' '), write(args...); }
+} // IO
+using namespace IO;
 
 main()
 {
-    // freopen("in.txt","r",stdin);
-    // freopen("out.txt","w",stdout);
-    cin>>n>>n>>q;
-    for(int i=1;i<=n;i++)cin>>a[i];
-    while(q--)
+    read(n);
+    for(int i=1;i<=n;i++)
     {
-        int opt;cin>>opt;
-        if(opt==1)
-        {
-            m++;Q[m].x=m;
-            cin>>Q[m].l>>Q[m].r;
-        }
-        else cin>>t[++c].y,t[c].x=m;
-        if(!q||m==S)solve();
+        read(a[i].x,a[i].y);
+        if(i==n)break;
+        int k;read(k);
+        p[i].resize(k);
+        while(k--)read(p[i][k].x,p[i][k].y);
     }
-    for(int i=1;i<=n;i++)cout<<a[i]<<'\n';
+    build(1,1,n);dfs(1,1,n);read(q);
+    for(int i=1;i<=q;i++)read(Q[i].p,Q[i].x.x,Q[i].x.y,Q[i].c),Q[i].id=i;
+    sort(Q+1,Q+1+q);
+    for(int i=1;i<=q;i++)
+    {
+        t=Q[i].x,c=Q[i].c;
+        int pos=Q[i].p;
+        if(a[pos]*t>=c)ans[Q[i].id]=pos;
+        else ans[Q[i].id]=solve(1,1,n,1,Q[i].p-1);
+    }
+    for(int i=1;i<=q;i++)write(ans[i]);
 }

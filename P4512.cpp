@@ -52,12 +52,6 @@ struct poly
     {
         resize(l.l);
     }
-    poly(initializer_list<ll> p)
-    {
-        resize(p.size()-1);
-        int l=0;
-        for(auto i:p) a[l++]=i;
-    }
     poly(int x)
     {
         resize(0);
@@ -147,11 +141,12 @@ struct poly
         while(p<=a.n+b.n) p<<=1;
         a.NTT(p,1);
         b.NTT(p,1);
-        poly c((len)p);
+        poly c;
+        c.resize(p);
         for(int i=0;i<=p;++i) c[i]=a[i]*b[i]%P;
-        c.NTT(p,-1).resize(a.n+b.n);
-        ll w=inv(p);
-        for(int i=0;i<=c.n;++i) c[i]=c[i]*w%P;
+        c.NTT(p,-1);
+        c.resize(a.n+b.n);
+        for(int i=0;i<=c.n;++i) c[i]=c[i]*inv(p)%P;
         return c;
     }
     poly getinv(int n)
@@ -176,17 +171,35 @@ struct poly
     {
         return getinv(n);
     }
+    friend poly operator/(poly a,poly b)
+    {
+        poly ra=a,rb=b;
+        for(int i=0;i<=a.n/2;++i) swap(ra[i],ra[a.n-i]);
+        for(int i=0;i<=b.n/2;++i) swap(rb[i],rb[b.n-i]);
+        poly w=(ra*rb.getinv(a.n-b.n+1)).resize(a.n-b.n);
+        for(int i=0;i<=w.n/2;++i) swap(w[i],w[w.n-i]);
+        return w;
+    }
+    friend poly operator%(poly a,poly b)
+    {
+        poly ra=a,rb=b;
+        for(int i=0;i<=a.n/2;++i) swap(ra[i],ra[a.n-i]);
+        for(int i=0;i<=b.n/2;++i) swap(rb[i],rb[b.n-i]);
+        poly w=(ra*rb.getinv(a.n-b.n+1)).resize(a.n-b.n);
+        for(int i=0;i<=w.n/2;++i) swap(w[i],w[w.n-i]);
+        return a-b*w;
+    }
 };
 int main()
 {
-    scanf("%d",&n);
-    poly a;
-    a.resize(n-1);
-    for(int i=0;i<=a.n;++i)
-    {
-        scanf("%lld",&a.a[i]);
-    }
-    poly b=a.getinv();
-    b.print();
+    scanf("%d%d",&n,&m);
+    poly a((len)n),b((len)m);
+    for(int i=0;i<=n;++i) scanf("%d",&a.a[i]);
+    for(int i=0;i<=m;++i) scanf("%d",&b.a[i]);
+    poly w=a/b,r=a%b;
+    int x=r.n;
+    while(r[x]==0) --x;
+    r.resize(x);
+    w.print(),r.print();
     return 0;
 }

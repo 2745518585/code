@@ -4,7 +4,7 @@ using namespace std;
 typedef long long ll;
 const int N=3000001;
 const ll P=998244353;
-int n,m;
+int n,m,q1,q2;
 void exgcd(ll a,ll b,ll &x,ll &y)
 {
     if(b==0) x=1,y=0;
@@ -154,39 +154,45 @@ struct poly
         for(int i=0;i<=c.n;++i) c[i]=c[i]*w%P;
         return c;
     }
-    poly getinv(int n)
-    {
-        if(n==0) return poly(inv(a[0])).resize(n);
-        poly x=getinv(n/2),y=*this;
-        y.resize(n);
-        int p=1;
-        while(p<=n*2) p<<=1;
-        x.NTT(p,1);
-        y.NTT(p,1);
-        for(int i=0;i<=p;++i)
-        {
-            x.a[i]=(2-y[i]*x[i]%P+P)*x[i]%P;
-        }
-        x.NTT(p,-1);
-        x.resize(n);
-        for(int i=0;i<=n;++i) x.a[i]=x[i]*inv(p)%P;
-        return x;
-    }
-    poly getinv()
-    {
-        return getinv(n);
-    }
 };
+poly mul(const poly &a,const poly &b)
+{
+    poly c=a*b;
+    for(int i=n*2+2;i<=c.n;++i) c[i%(n*2+2)]=(c[i%(n*2+2)]+c[i])%P;
+    c.resize(n*2+1);
+    return move(c);
+}
+poly qpow(poly a,ll b)
+{
+    poly x=1,y=a;
+    while(b)
+    {
+        if(b&1) x=mul(x,y);
+        y=mul(y,y);
+        b>>=1;
+    }
+    return x;
+}
 int main()
 {
-    scanf("%d",&n);
-    poly a;
-    a.resize(n-1);
-    for(int i=0;i<=a.n;++i)
+    scanf("%d%d%d%d",&m,&n,&q1,&q2);
+    poly a((len)(n*2+1)),b((len)(n*2+1));
+    b[0]=b[1]=b[n*2+1]=1;
+    for(int i=1;i<=q1;++i)
     {
-        scanf("%lld",&a.a[i]);
+        int x;
+        scanf("%d",&x);
+        ++a[x];
+        --a[n*2+2-x];
     }
-    poly b=a.getinv();
-    b.print();
+    a=mul(a,qpow(b,m-1));
+    ll s=0;
+    for(int i=1;i<=q2;++i)
+    {
+        int x;
+        scanf("%d",&x);
+        s=(s+a[x])%P;
+    }
+    printf("%lld",(s%P+P)%P);
     return 0;
 }

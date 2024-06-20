@@ -29,18 +29,22 @@ void solve(vector<str> a)
         str p=(*prev(Set.end()));
         p.s-=k;
         Set.erase(prev(Set.end()));
-        Set.insert(p);
+        if(p.s!=0) Set.insert(p);
         --m;
     }
     while(m>0)
     {
         int z=(*Set.begin()).s;
-        printf("%d %d %d %d\n",(*Set.begin()).x,z,(*prev(Set.end())).x,k-z);
+        if(k-z>0) printf("%d %d %d %d\n",(*Set.begin()).x,z,(*prev(Set.end())).x,k-z);
+        else printf("%d %d\n",(*Set.begin()).x,z);
         Set.erase(Set.begin());
-        str p=(*prev(Set.end()));
-        p.s-=k-z;
-        Set.erase(prev(Set.end()));
-        if(p.s!=0) Set.insert(p);
+        if(k-z>0)
+        {
+            str p=(*prev(Set.end()));
+            p.s-=k-z;
+            Set.erase(prev(Set.end()));
+            if(p.s!=0) Set.insert(p);
+        }
         --m;
     }
 }

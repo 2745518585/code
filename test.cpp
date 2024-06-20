@@ -1,41 +1,83 @@
-#include<bits/stdc++.h>
-#define int long long
+#include <bits/stdc++.h>
+
+#define N 100005
+#define hs(x,y,z) ((x)+1ll*(y)*N+1ll*(z)*N*N)
+
+typedef long long ll;
+
 using namespace std;
-const int N=8e6;
 
-int n,m,k,mod,cm[N],icm[N],ans;
-
-int ksm(int a,int b)
+ll nw;
+int s,n,a[N*3],vis[N];
+struct edge{int v,w,nxt;};
+unordered_map<ll,int>mp;
+void updt(int,int,int,int);
+struct tRee
 {
-    int ans=1;
-    while(b)
-    {
-        if(b&1)ans=ans*a%mod;
-        b>>=1;a=a*a%mod;
-    }
-    return ans;
+	edge e[N*2];
+	int id,en,cnt,c[N],d[N],fm[N],dfn[N],sz[N],sn[N],head[N];
+	void adde(int u,int v,int w){e[++en]={v,w,head[u]};head[u]=en;}
+	void read()
+	{
+		int i,u,v,w;
+		for(i=1;i<n;++i)
+		{
+			scanf("%d %d %d",&u,&v,&w);
+			adde(u,v,w);adde(v,u,w);
+		}
+	}
+	void dfs(int u,int fa)
+	{
+		int i,v;
+		fm[dfn[u]=++cnt]=u;sz[u]=1;
+		for(i=head[u];i;i=e[i].nxt)
+			if((v=e[i].v)!=fa)
+			{
+				d[v]=d[u]+e[i].w;
+				dfs(v,u);sz[u]+=sz[v];
+				if(sz[sn[u]]<sz[v])sn[u]=v;
+			}
+	}
+	void add(int u)
+	{
+		int i;vis[u]|=1<<id;
+		if(!sn[u]){updt(id,u,u,1);return;}
+		updt(id,u,c[sn[u]],1);
+		for(i=dfn[u]+1;i<dfn[sn[u]];++i)updt(id,fm[i],c[sn[u]],0);
+		for(i=dfn[sn[u]]+sz[sn[u]];i<dfn[u]+sz[u];++i)updt(id,fm[i],c[sn[u]],0);
+	}
+}A[3];
+void updt(int p,int k,int x,int fl)
+{
+	if(!fl)if(vis[k]==s)nw-=--mp[hs(A[0].c[k],A[1].c[k],A[2].c[k])];
+	A[p].c[k]=x;if(vis[k]==s)nw+=mp[hs(A[0].c[k],A[1].c[k],A[2].c[k])]++;
 }
 
-int binom(int n,int m)
+vector<pair<int,int>>g[N*3];
+
+int main()
 {
-    if(m>n)return 0;
-    return cm[n]*icm[m]%mod*icm[n-m]%mod;
+	ll ans=0;
+	int i,k,tl=0;
+	scanf("%d",&n);
+	for(i=0;i<3;++i){A[i].read();A[i].id=i;A[i].dfs(1,0);}
+	for(k=0;k<3;++k)for(i=1;i<=n;++i)a[++tl]=A[k].d[i];
+	sort(a+1,a+tl+1);tl=unique(a+1,a+tl+1)-a-1;
+	for(k=0;k<3;++k)for(i=1;i<=n;++i)g[lower_bound(a+1,a+tl+1,A[k].d[i])-a].push_back({k,i});
+	for(s=1;s<8;++s)
+	{
+		mp.clear();nw=0;
+		memset(vis,0,sizeof(vis));
+        ll w=0;
+		for(i=tl;i;--i)
+		{
+			for(auto t:g[i])if(s&(1<<t.first))A[t.first].add(t.second);
+			w+=(a[i]-a[i-1])*nw;
+		}
+        printf("%d %lld\n",s,w);
+        ans+=(__builtin_popcount(s)&1?1ll:-1ll)*w;
+	}
+	printf("%lld\n",ans);
+	return 0;
 }
 
-signed main()
-{
-    // freopen("in.txt","r",stdin);
-    cin>>n>>m>>k>>mod;
-    cm[0]=1;
-    for(int i=1;i<N;i++)cm[i]=cm[i-1]*i%mod;
-    icm[N-1]=ksm(cm[N-1],mod-2);
-    for(int i=N-1;i;i--)icm[i-1]=icm[i]*i%mod;
-    if(k==n+m-1)
-    {
-        cout<<binom(n+m,n);
-        return 0;
-    }
-    for(int i=0;i<=k;i++)ans=(ans+binom(k,i)*binom(n+m-1-k+i,n)%mod*binom(n+m-1-i,m)%mod)%mod;
-    ans=2*(k+1)*ksm(n+m-1-k,mod-2)%mod*ans%mod;
-    cout<<ans;
-}

@@ -2,6 +2,6 @@
 using namespace std;
 int main()
 {
-    printf("NO");
+    printf("0");
     return 0;
 }

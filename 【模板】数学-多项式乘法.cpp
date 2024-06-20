@@ -28,6 +28,11 @@ ll qpow(ll x,ll y)
     }
     return a;
 }
+struct len
+{
+    int l;
+    len(int l):l(l) {}
+};
 struct poly
 {
     int n=-1;
@@ -43,34 +48,70 @@ struct poly
         return *this;
     }
     poly(){}
+    poly(len l)
+    {
+        resize(l.l);
+    }
+    poly(initializer_list<ll> p)
+    {
+        resize(p.size()-1);
+        int l=0;
+        for(auto i:p) a[l++]=i;
+    }
     poly(int x)
     {
         resize(0);
         a[0]=x;
     }
+    poly(const poly& p)
+    {
+        if(this!=&p)
+        {
+            delete[] a,a=NULL;
+            n=p.n;
+            a=new ll[n+1];
+            for(int i=0;i<=n;++i) a[i]=p[i];
+        }
+    }
+    ~poly()
+    {
+        if(a!=NULL) delete[] a,a=NULL;
+    }
+    poly& operator=(const poly& p)
+    {
+        if(this!=&p)
+        {
+            delete[] a,a=NULL;
+            n=p.n;
+            a=new ll[n+1];
+            for(int i=0;i<=n;++i) a[i]=p[i];
+        }
+        return *this;
+    }
     ll &operator[](size_t x) {return a[x];}
+    const ll &operator[](size_t x) const {return a[x];}
     void print()
     {
-        for(int i=0;i<=n;++i) printf("%lld ",a[i]);
+        for(int i=0;i<=n;++i) printf("%lld ",(a[i]%P+P)%P);
         printf("\n");
     }
-    friend poly operator+(poly a,poly b)
+    friend poly operator+(const poly &a,const poly &b)
     {
         poly c;
         c.resize(max(a.n,b.n));
-        for(int i=0;i<=c.n;++i) c[i]=(a[i]+b[i])%P;
+        for(int i=0;i<=c.n;++i) c[i]=((i<=a.n?a[i]:0)+(i<=b.n?b[i]:0))%P;
         return c;
     }
-    friend poly operator-(poly a,poly b)
+    friend poly operator-(const poly &a,const poly &b)
     {
         poly c;
         c.resize(max(a.n,b.n));
-        for(int i=0;i<=c.n;++i) c[i]=(a[i]-b[i]+P)%P;
+        for(int i=0;i<=c.n;++i) c[i]=((i<=a.n?a[i]:0)-(i<=b.n?b[i]:0)+P)%P;
         return c;
     }
-    friend poly NTT(int n,poly a,int u)
+    poly NTT(int n,int u)
     {
-        a.resize(n);
+        resize(n);
         int p=0;
         while((1<<p)<n) ++p;
         static int d[N];
@@ -98,20 +139,19 @@ struct poly
                 }
             }
         }
-        return a;
+        return *this;
     }
     friend poly operator*(poly a,poly b)
     {
         int p=1;
         while(p<=a.n+b.n) p<<=1;
-        a=NTT(p,a,1);
-        b=NTT(p,b,1);
-        poly c;
-        c.resize(p);
+        a.NTT(p,1);
+        b.NTT(p,1);
+        poly c((len)p);
         for(int i=0;i<=p;++i) c[i]=a[i]*b[i]%P;
-        c=NTT(p,c,-1);
-        c.resize(a.n+b.n);
-        for(int i=0;i<=c.n;++i) c[i]=c[i]*inv(p)%P;
+        c.NTT(p,-1).resize(a.n+b.n);
+        ll w=inv(p);
+        for(int i=0;i<=c.n;++i) c[i]=c[i]*w%P;
         return c;
     }
 };

@@ -64,6 +64,7 @@ vector<pt> solve(const vector<pt> &a)
     vector<pt> p;
     for(auto i:a)
     {
+        while(p.size()>0&&p.back().x==i.x&&p.back().y<=i.y) p.pop_back();
         while(p.size()>1&&((p[p.size()-2]-p[p.size()-1])^(p[p.size()-1]-i))>=0) p.pop_back();
         p.push_back(i);
     }
@@ -72,7 +73,7 @@ vector<pt> solve(const vector<pt> &a)
 vector<pt> merge(const vector<pt> &a,const vector<pt> &b)
 {
     vector<pt> p;
-    p.push_back(pt(0,max(a[0].y,b[0].y)));
+    p.push_back(pt(0,a[0].y+b[0].y));
     int x1=0,x2=0;
     while(x1+1<a.size()||x2+1<b.size())
     {
@@ -124,28 +125,18 @@ namespace sgt
             for(auto i:b[l]) T[x].w.push_back(i);
             T[x].s=solve(T[x].s);
             T[x].w=solve(T[x].w);
-            // printf("%d %d:\n",l,r);
-            // for(auto i:T[x].s) printf("(%lld,%lld) ",i.x,i.y);printf("\n");
-            // for(auto i:T[x].w) printf("(%lld,%lld) ",i.x,i.y);printf("\n");
             return;
         }
         int z=l+r>>1;
         build(x<<1,l,z);
         build(x<<1|1,z+1,r);
         pushup(x);
-        // printf("%d %d:\n",l,r);
-        // for(auto i:T[x].s) printf("(%lld,%lld) ",i.x,i.y);printf("\n");
-        // for(auto i:T[x].w) printf("(%lld,%lld) ",i.x,i.y);printf("\n");
     }
     int sum(int x,int r,str &k)
     {
-        printf("%d %d %d %lld\n",T[x].l,T[x].r,r,k.w);
         if(T[x].r<=r&&!find(T[x].s,T[x].ts,k))
         {
             find(T[x].w,T[x].tw,k);
-            printf("%d: ",x);
-            for(auto i:T[x].w) printf("(%lld,%lld) ",i.x,i.y);printf("\n");
-            printf("%lld %lld %lld\n",T[x].w[T[x].tw].x,T[x].w[T[x].tw].y,k(T[x].w[T[x].tw]));
             k.w-=k(T[x].w[T[x].tw]);
             return 0;
         }
