@@ -1,218 +1,60 @@
-#pragma GCC optimize("Ofast","inline")
 #include<bits/stdc++.h>
 #define int long long
 using namespace std;
-const int N=1e6+50;
+const int N=4e6+50,mod=998244353,ba=29;
 
-struct poi
+int n,h[N],mi[N],f[N],ans[N],mx;
+char s[N],t[N]; 
+
+int find(int l,int r)
 {
-    int x,y;
-
-    friend poi operator+(poi a,poi b)
-    {
-        return (poi){a.x+b.x,a.y+b.y};
-    }
-
-    friend poi operator-(poi a,poi b)
-    {
-        return (poi){a.x-b.x,a.y-b.y};
-    }
-
-    int operator^(poi b)
-    {
-        return x*b.y-y*b.x;
-    }
-
-    int len()
-    {
-        return x*x+y*y;
-    }
-
-    friend bool operator<(poi a,poi b)
-    {
-        int w=a^b;
-        return w==0?a.len()>b.len():w<0;
-    }
-    
-    int operator*(poi b)
-    {
-        return x*b.x+y*b.y;
-    }
-}a[N];
-
-struct query
-{
-    poi x;int c,id,p;
-    
-    friend bool operator<(query a,query b)
-    {
-        return a.x<b.x;
-    }
-}Q[N];
-
-int n,q,ans[N];
-vector<poi>p[N];
-poi st[N<<3];
-
-#define ls (x<<1)
-#define rs (x<<1|1)
-#define mid ((l+r)>>1)
-#define LS ls,l,mid
-#define RS rs,mid+1,r
-
-struct convex
-{
-    vector<poi>p;
-    int pos;
-
-    void merge1(convex a,convex b)// mink
-    {
-        vector<poi>().swap(p);
-        p.resize(a.p.size()+b.p.size());
-        int pos=0,cc=0;
-        for(auto x:a.p)
-        {
-            while(pos<b.p.size()&&b.p[pos]<x)p[cc++]=b.p[pos++];
-            p[cc++]=x;
-        }
-        while(pos<b.p.size())p[cc++]=b.p[pos++];
-    }
-    
-    void merge2(convex a,convex b)// convex hull
-    {
-        vector<poi>().swap(p);
-        int cc=0,pos=0;
-        for(auto x:a.p)
-        {
-            while(pos<b.p.size()&&(x.x>b.p[pos].x||(x.x==b.p[pos].x&&x.y>b.p[pos].y)))st[cc++]=b.p[pos++];
-            st[cc++]=x;
-        }
-        while(pos<b.p.size())st[cc++]=b.p[pos++];
-        if(cc==0)return;
-        int top=0;
-        for(int i=1;i<cc;i++)
-        {
-            while(top&&((st[i]-st[top-1])^(st[top]-st[top-1]))<=0)top--;
-            st[++top]=st[i];
-        }
-        p.resize(top+1);
-        for(int i=0;i<=top;i++)p[i]=st[i];
-    }
-
-    void diff()
-    {
-        for(int i=p.size()-1;i>0;i--)p[i]=p[i]-p[i-1];
-    }
-    
-    void integral()
-    {
-        for(int i=1;i<p.size();i++)p[i]=p[i]+p[i-1];
-    }
-
-    int find(poi x)
-    {
-        if(p.empty())return 0;
-        int w=x*p[pos];
-        while(pos+1<p.size()&&w<=x*p[pos+1])w=x*p[++pos];
-        return w;
-    }
-}f[N],g[N],tmp;
-
-void build(int x,int l,int r)
-{
-    if(l==r)
-    {
-        sort(p[l].begin(),p[l].end(),[&](poi a,poi b){return a.x==b.x?a.y<b.y:a.x<b.x;});
-        f[x].merge2((convex){p[l]},(convex){});
-        g[x]=f[x];
-        for(auto&t:g[x].p)t=t+a[l];
-        f[x].diff();
-        return;
-    }
-    build(LS);build(RS);
-    f[x].merge1(f[ls],f[rs]);
-    tmp=g[ls];tmp.diff();
-    tmp.merge1(tmp,f[rs]);
-    tmp.integral();
-    g[x].merge2(tmp,g[rs]);
+    if(l>r)return 0;
+    return (h[r]-h[l-1]*mi[r-l+1]%mod+mod)%mod;
 }
 
-int c;poi t;
-
-int solve(int x,int l,int r,int L,int R)
+int find(int l1,int r1,int l2,int r2)
 {
-    if(L>R)return -1;
-    if(L<=l&&R>=r)
+    int len=0,l=1,r=r1-l1+1;
+    while(l<=r)
     {
-        if(g[x].find(t)<c)
-        {
-            c-=f[x].find(t);
-            return -1;
-        }
-        if(l==r)return l;
-        int w=solve(RS,L,R);
-        return w==-1?solve(LS,L,R):w;
+        int md=(l+r)>>1;
+        if(find(l1,l1+md-1)==find(l2,l2+md-1))len=md,l=md+1;
+        else r=md-1;
     }
-    if(R>mid)
-    {
-        int w=solve(RS,L,R);
-        if(w!=-1)return w;
-    }
-    return solve(LS,L,R);
+    return len;
 }
 
-void dfs(int x,int l,int r)
+void chk(int x,int w)
 {
-    f[x].integral();
-    if(l==r)return;
-    dfs(LS);dfs(RS);
+    ans[x]=max(ans[x],w);
 }
-
-namespace IO {
-#define iL (1 << 20)
-char ibuf[iL], *iS = ibuf + iL, *iT = ibuf + iL;
-#define gc() ((iS == iT) ? (iT = (iS = ibuf) + fread(ibuf, 1, iL, stdin), iS == iT ? EOF : *iS ++) : *iS ++)
-template<class T> inline void read(T &x) {
-  x = 0;int f = 0;char ch = gc();
-  for (; !isdigit(ch); f |= ch == '-', ch = gc());
-  for (; isdigit(ch); x = (x << 1) + (x << 3) + (ch ^ 48), ch = gc());
-  x = (f == 1 ? ~ x + 1 : x);
-}
-template<class T, class... Args> inline void read(T &x, Args&... args) { read(x), read(args...); }
-template<class T> inline void readch(T &x) { char ch = gc(); for (; !isalpha(ch); ch = gc()); x = ch; }
-char Out[iL], *iter = Out;
-#define flush() fwrite(Out, 1, iter - Out, stdout), iter = Out
-template<class T> inline void write(T x, char ch = '\n') {
-  T l, c[35];
-  if (x < 0) *iter ++ = '-', x = ~ x + 1;
-  for (l = 0; !l || x; c[l] = x % 10, l++, x /= 10);
-  for (; l; -- l, *iter ++ = c[l] + '0');*iter ++ = ch;
-  flush();
-}
-template<class T, class... Args> inline void write(T x, Args... args) { write(x, ' '), write(args...); }
-} // IO
-using namespace IO;
 
 main()
 {
-    read(n);
+    // freopen("in.txt","r",stdin);
+    // freopen("out.txt","w",stdout);
+    cin>>(s+1)>>(t+1);
+    n=strlen(s+1);mi[0]=1;
+    for(int i=1;i<=n;i++)mi[i]=mi[i-1]*ba%mod,s[i]-='a',t[i]-='a',h[i]=(h[i-1]*ba+s[i])%mod;
+    for(int i=1;i<n;i++)
+    {
+        chk(i,f[min(i-1,n-i)]);
+        f[i]=mx;
+        int a=find(1,i),b=find(n-i+1,n);
+        if(a==b){f[i]=mx=i;continue;}
+        int pos=find(1,i,n-i+1,n)+1,len=i-pos,p1=pos,p2=n-len;
+        if(find(pos+1,i)==find(n-len+1,n))
+        {
+            if(p1<n-i+1&&t[p1]==s[p2])chk(p1,i);
+            if(p2>i&&t[p2]==s[p1])chk(p2,i);
+            continue;
+        }
+        int p3=n-i+p2;
+        if(find(p1+1,p2-1)==find(p2+1,p3-1)&&find(p2+1,i)==find(p3+1,n)&&s[p1]==t[p2]&&t[p2]==s[p3])chk(p2,i);
+    }
     for(int i=1;i<=n;i++)
     {
-        read(a[i].x,a[i].y);
-        if(i==n)break;
-        int k;read(k);
-        p[i].resize(k);
-        while(k--)read(p[i][k].x,p[i][k].y);
+        if(s[i]==t[i])ans[i]=max(ans[i],mx);
+        cout<<ans[i]<<'\n';
     }
-    build(1,1,n);dfs(1,1,n);read(q);
-    for(int i=1;i<=q;i++)read(Q[i].p,Q[i].x.x,Q[i].x.y,Q[i].c),Q[i].id=i;
-    sort(Q+1,Q+1+q);
-    for(int i=1;i<=q;i++)
-    {
-        t=Q[i].x,c=Q[i].c;
-        int pos=Q[i].p;
-        if(a[pos]*t>=c)ans[Q[i].id]=pos;
-        else ans[Q[i].id]=solve(1,1,n,1,Q[i].p-1);
-    }
-    for(int i=1;i<=q;i++)write(ans[i]);
 }
