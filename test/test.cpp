@@ -1,60 +1,76 @@
-#include<bits/stdc++.h>
-#define int long long
+#include<cstdio>
+#include<algorithm>
+#include<vector>
+#include<queue>
 using namespace std;
-const int N=4e6+50,mod=998244353,ba=29;
-
-int n,h[N],mi[N],f[N],ans[N],mx;
-char s[N],t[N]; 
-
-int find(int l,int r)
+const int N=5000001;
+int n,q,a[N],d[N],dl[N],dr[N];
+vector<int> b[N];
+int main()
 {
-    if(l>r)return 0;
-    return (h[r]-h[l-1]*mi[r-l+1]%mod+mod)%mod;
-}
-
-int find(int l1,int r1,int l2,int r2)
-{
-    int len=0,l=1,r=r1-l1+1;
-    while(l<=r)
+    scanf("%d",&n);
+    for(int i=(1<<n);i<=(1<<(n+1))-1;++i) d[i]=1,dl[i]=dr[i]=i;
+    for(int i=(1<<n)-1;i>=1;--i) d[i]=d[i*2]+1,dl[i]=dl[i*2],dr[i]=dr[i*2+1];
+    queue<int> Q;
+    a[dl[1]]=a[dr[1]]=1;
+    if(d[1]>1)
     {
-        int md=(l+r)>>1;
-        if(find(l1,l1+md-1)==find(l2,l2+md-1))len=md,l=md+1;
-        else r=md-1;
-    }
-    return len;
-}
-
-void chk(int x,int w)
-{
-    ans[x]=max(ans[x],w);
-}
-
-main()
-{
-    // freopen("in.txt","r",stdin);
-    // freopen("out.txt","w",stdout);
-    cin>>(s+1)>>(t+1);
-    n=strlen(s+1);mi[0]=1;
-    for(int i=1;i<=n;i++)mi[i]=mi[i-1]*ba%mod,s[i]-='a',t[i]-='a',h[i]=(h[i-1]*ba+s[i])%mod;
-    for(int i=1;i<n;i++)
-    {
-        chk(i,f[min(i-1,n-i)]);
-        f[i]=mx;
-        int a=find(1,i),b=find(n-i+1,n);
-        if(a==b){f[i]=mx=i;continue;}
-        int pos=find(1,i,n-i+1,n)+1,len=i-pos,p1=pos,p2=n-len;
-        if(find(pos+1,i)==find(n-len+1,n))
+        a[1]=a[dl[1]/2]=a[dr[1]/2]=2;
+        Q.push(1);
+        if(d[1]>2)
         {
-            if(p1<n-i+1&&t[p1]==s[p2])chk(p1,i);
-            if(p2>i&&t[p2]==s[p1])chk(p2,i);
-            continue;
+            Q.push(dl[1]/2);
+            Q.push(dr[1]/2);
         }
-        int p3=n-i+p2;
-        if(find(p1+1,p2-1)==find(p2+1,p3-1)&&find(p2+1,i)==find(p3+1,n)&&s[p1]==t[p2]&&t[p2]==s[p3])chk(p2,i);
     }
-    for(int i=1;i<=n;i++)
+    q=d[1]/2+1;
+    while(!Q.empty())
     {
-        if(s[i]==t[i])ans[i]=max(ans[i],mx);
-        cout<<ans[i]<<'\n';
+        int k=Q.front();
+        Q.pop();
+        if(k>1&&!a[k/2])
+        {
+            a[k/2]=a[k]+1;
+            Q.push(k/2);
+        }
+        if(k<(1<<n)) for(int i:{k*2,k*2+1})
+        {
+            if(a[i]) continue;
+            if(a[dl[i]]||a[dr[i]])
+            {
+                a[i]=a[k]+1;
+                Q.push(i);
+            }
+            else
+            {
+                a[dl[i]]=a[dr[i]]=a[k];
+                if(d[i]>1)
+                {
+                    a[i]=a[dl[i]/2]=a[dr[i]/2]=q+1;
+                    Q.push(i);
+                    if(d[i]>2)
+                    {
+                        Q.push(dl[i]/2);
+                        Q.push(dr[i]/2);
+                    }
+                }
+                q+=d[i]/2;
+            }
+        }
     }
+    for(int i=1;i<=(1<<(n+1))-1;++i) b[a[i]].push_back(i);
+    int s=0;
+    for(int i=1;i<=q;++i)
+    {
+        if(b[i].size()) ++s;
+    }
+    printf("%d\n",s);
+    for(int i=1;i<=q;++i)
+    {
+        if(b[i].size()==0) continue;
+        printf("%d ",b[i].size());
+        for(auto j:b[i]) printf("%d ",j);
+        printf("\n");
+    }
+    return 0;
 }
