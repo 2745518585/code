@@ -1,76 +1,47 @@
-#include<cstdio>
-#include<algorithm>
-#include<vector>
-#include<queue>
-using namespace std;
-const int N=5000001;
-int n,q,a[N],d[N],dl[N],dr[N];
-vector<int> b[N];
-int main()
+#include<bits/stdc++.h>
+#include"grader.cpp"
+#include"pen.h"
+namespace Solve
 {
-    scanf("%d",&n);
-    for(int i=(1<<n);i<=(1<<(n+1))-1;++i) d[i]=1,dl[i]=dr[i]=i;
-    for(int i=(1<<n)-1;i>=1;--i) d[i]=d[i*2]+1,dl[i]=dl[i*2],dr[i]=dr[i*2+1];
-    queue<int> Q;
-    a[dl[1]]=a[dr[1]]=1;
-    if(d[1]>1)
+    using namespace std;
+    int n,a[101];
+    bool h[101];
+    int rnd(int x,int y)
     {
-        a[1]=a[dl[1]/2]=a[dr[1]/2]=2;
-        Q.push(1);
-        if(d[1]>2)
-        {
-            Q.push(dl[1]/2);
-            Q.push(dr[1]/2);
-        }
+        static mt19937 gen(random_device{}());
+        return uniform_int_distribution<int>(x,y)(gen);
     }
-    q=d[1]/2+1;
-    while(!Q.empty())
+    pair<int,int> rnd_pair(int x,int y)
     {
-        int k=Q.front();
-        Q.pop();
-        if(k>1&&!a[k/2])
+        int s1=rnd(x,y),s2=rnd(x,y);
+        while(s1==s2) s2=rnd(x,y);
+        return make_pair(s1,s2);
+    }
+    pair<int,int> main(int _n)
+    {
+        n=_n;
+        for(int i=0;i<=n-1;++i) a[i]=-1,h[i]=true;
+        int x=0;
+        for(int i=0;i<=n-1;++i)
         {
-            a[k/2]=a[k]+1;
-            Q.push(k/2);
-        }
-        if(k<(1<<n)) for(int i:{k*2,k*2+1})
-        {
-            if(a[i]) continue;
-            if(a[dl[i]]||a[dr[i]])
+            for(int j=0;j<=n-1;++j)
             {
-                a[i]=a[k]+1;
-                Q.push(i);
+                if(!h[j]) continue;
+                while(a[j]<i) h[j]&=write(j),++a[j];
+                if(!h[j]) break;
             }
-            else
+            int x1=-1,x2=-1;
+            for(int i=0;i<=n-1;++i)
             {
-                a[dl[i]]=a[dr[i]]=a[k];
-                if(d[i]>1)
-                {
-                    a[i]=a[dl[i]/2]=a[dr[i]/2]=q+1;
-                    Q.push(i);
-                    if(d[i]>2)
-                    {
-                        Q.push(dl[i]/2);
-                        Q.push(dr[i]/2);
-                    }
-                }
-                q+=d[i]/2;
+                if(!h[i]) continue;
+                if(x1==-1||a[i]<a[x1]) x2=x1,x1=i;
+                else if(x2==-1||a[i]<a[x2]) x2=i;
             }
+            if(n+i-a[x1]-a[x2]>n+4||i==5) return make_pair(x1,x2);
         }
     }
-    for(int i=1;i<=(1<<(n+1))-1;++i) b[a[i]].push_back(i);
-    int s=0;
-    for(int i=1;i<=q;++i)
-    {
-        if(b[i].size()) ++s;
-    }
-    printf("%d\n",s);
-    for(int i=1;i<=q;++i)
-    {
-        if(b[i].size()==0) continue;
-        printf("%d ",b[i].size());
-        for(auto j:b[i]) printf("%d ",j);
-        printf("\n");
-    }
-    return 0;
+}
+std::pair<int,int> solve(int n)
+{
+    return Solve::main(n);
 }

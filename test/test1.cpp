@@ -1,71 +1,150 @@
-#include<bits/stdc++.h>
+#include <bits/stdc++.h>
 using namespace std;
-#define pii pair<int,int>
-#define fi first
-#define se second
-#define vp vector<pii>
-const int N=100005,M=1<<18,inf=30;
-int n,q,op,l,r,i,a[N],R;
-struct node{
-    int ans;vp a;
-}f[M],tmp;
-void ins(vp &a,pii x){
-    if(a.empty()) a.push_back(x);
-    else if(a.back().fi==x.fi) a.back().se+=x.se;
-    else if(a.size()<2||!(a.back().fi<a.end()[-2].fi&&a.back().fi<x.fi)) a.push_back(x);
-    else{
-        pii u=a.back();a.pop_back();
-        int c=min(a.back().fi,x.fi)-u.fi;
-        R=max(R,u.fi+__lg(u.se));
-        if(((u.se>>c)<<c)==u.se) ins(a,{u.fi+c,u.se>>c});
-        else{
-            if(u.se>>c) ins(a,{u.fi+c,u.se>>c});
-            ins(a,{inf,1});
-            if(u.se>>c) ins(a,{u.fi+c,u.se>>c});
-        }
-        ins(a,x);
+#define ll long long
+const ll N = 2e5 + 10;
+ll n, m;
+ll sum[N];
+ll l[N], r[N], c[N], t[N];
+vector<ll> jl[N], jr[N];
+ll u[N], v[N];
+struct s1
+{
+    ll val[N << 2], tag[N << 2];
+    inline void clear()
+    {
+        memset(val, 0, sizeof(val));
+        memset(tag, 0, sizeof(tag));
+        return;
     }
-}
-node operator +(const node &a,const node &b){
-    node c;c.ans=max(a.ans,b.ans);R=-1<<30;
-    c.a=a.a;for(auto j:b.a) ins(c.a,j);c.ans=max(c.ans,R);
-    return c;
-}
-void upd(int k){f[k]=f[k<<1]+f[k<<1|1];}
-void bd(int k,int l,int r){
-    if(l==r) return f[k]=node{0,{{a[l],1}}},void();
-    int mid=l+r>>1;
-    bd(k<<1,l,mid),bd(k<<1|1,mid+1,r);
-    upd(k);
-}
-void ad(int k,int l,int r,int pos){
-    if(l==r) return f[k]=node{0,{{a[l],1}}},void();
-    int mid=l+r>>1;
-    pos<=mid?ad(k<<1,l,mid,pos):ad(k<<1|1,mid+1,r,pos);
-    upd(k);
-}
-node fd(int k,int l,int r,int s,int e){
-    if(l>=s&&r<=e) return f[k];
-    int mid=l+r>>1;
-    return s<=mid&&e>mid?fd(k<<1,l,mid,s,e)+fd(k<<1|1,mid+1,r,s,e):(s<=mid?fd(k<<1,l,mid,s,e):fd(k<<1|1,mid+1,r,s,e));
-}
-vp c;
+    inline void push(ll o, ll x)
+    {
+        val[o] += x;
+        tag[o] += x;
+        return;
+    }
+    inline void pushup(ll o)
+    {
+        val[o] = min(val[o << 1], val[o << 1 | 1]);
+        return;
+    }
+    inline void pushdown(ll o)
+    {
+        if (tag[o])
+        {
+            push(o << 1, tag[o]);
+            push(o << 1 | 1, tag[o]);
+            tag[o] = 0;
+        }
+        return;
+    }
+    inline void update(ll o, ll l, ll r, ll x, ll y, ll z)
+    {
+        if (x <= l && r <= y)
+        {
+            push(o, z);
+            return;
+        }
+        ll mid = (l + r) >> 1;
+        pushdown(o);
+        if (mid >= x) update(o << 1, l, mid, x, y, z);
+        if (mid < y) update(o << 1 | 1, mid + 1, r, x, y, z);
+        pushup(o);
+        return;
+    }
+    inline ll ask(ll o, ll l, ll r, ll x, ll y)
+    {
+        if (x <= l && r <= y) return val[o];
+        ll mid = (l + r) >> 1;
+        pushdown(o);
+        if (mid < x) return ask(o << 1 | 1, mid + 1, r, x, y);
+        if (mid >= y) return ask(o << 1, l, mid, x, y);
+        return min(ask(o << 1, l, mid, x, y), ask(o << 1 | 1, mid + 1, r, x, y));
+    }
+} o;
+struct s2
+{
+    ll val[N << 2], ans[N << 2], tag[N << 2], tg[N << 2];
+    inline void pushup(ll o)
+    {
+        val[o] = min(val[o << 1], val[o << 1 | 1]);
+        ans[o] = min(ans[o << 1], ans[o << 1 | 1]);
+        return;
+    }
+    inline void push(ll o, ll x, ll y)
+    {
+        ans[o] = min(ans[o], val[o] + y);
+        tg[o] = min(tg[o], tag[o] + y);
+        val[o] += x;
+        tag[o] += x;
+        return;
+    }
+    inline void pushdown(ll o)
+    {
+        if (tag[o] || tg[o]) push(o << 1, tag[o], tg[o]), push(o << 1 | 1, tag[o], tg[o]), tag[o] = tg[o] = 0;
+        return;
+    }
+    inline void update(ll o, ll l, ll r, ll x, ll y, ll z)
+    {
+        if (x <= l && r <= y)
+        {
+            push(o, z, z);
+            return;
+        }
+        ll mid = (l + r) >> 1;
+        pushdown(o);
+        if (mid >= x) update(o << 1, l, mid, x, y, z);
+        if (mid < y) update(o << 1 | 1, mid + 1, r, x, y, z);
+        pushup(o);
+        return;
+    }
+    inline ll ask(ll o, ll l, ll r, ll x, ll y)
+    {
+        if (x <= l && r <= y) return ans[o];
+        ll mid = (l + r) >> 1;
+        pushdown(o);
+        if (mid < x) return ask(o << 1 | 1, mid + 1, r, x, y);
+        if (mid >= y) return ask(o << 1, l, mid, x, y);
+        return min(ask(o << 1, l, mid, x, y), ask(o << 1 | 1, mid + 1, r, x, y));
+    }
+} p;
+vector<ll> rc[N];
 int main()
 {
-    scanf("%d",&n);
-    for(i=1;i<=n;i++) scanf("%d",&a[i]);
-    bd(1,1,n);
-    scanf("%d",&q);
-    while(q--){
-        scanf("%d%d%d",&op,&l,&r);
-        if(op==2) a[l]=r,ad(1,1,n,l);
-        else{
-            tmp=fd(1,1,n,l,r);R=tmp.ans;
-            c={{inf,1}};
-            for(auto j:tmp.a) ins(c,j);
-            ins(c,{inf,1});
-            printf("%d\n",R);
-        }
+    // freopen("test1.in","r",stdin);freopen("test1.out","w",stdout);
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+    cout.tie(0);
+    cin >> n >> m;
+    ll an = 0;
+    for (int i = 1; i <= n; i++) cin >> sum[i], sum[i] += sum[i - 1];
+    for (int i = 1; i <= m; i++)
+    {
+        cin >> l[i] >> r[i] >> c[i] >> t[i];
+        an += c[i];
+        if (!t[i]) jl[l[i]].emplace_back(i), jr[r[i]].emplace_back(i);
+        rc[l[i] + 1].emplace_back(i);
+    }
+    for (int i = 1; i <= n; i++)
+    {
+        for (auto t : jr[i]) o.update(1, 1, n, 1, l[t], -c[t]);
+        o.update(1, 1, n, i, i, u[i - 1] - sum[i - 1]);
+        u[i] = min(u[i - 1], sum[i] + o.ask(1, 1, n, 1, i));
+    }
+    o.clear();
+    for (int i = n; i >= 1; i--)
+    {
+        for (auto t : jl[i]) o.update(1, 1, n, r[t], n, -c[t]);
+        o.update(1, 1, n, i, i, v[i + 1] + sum[i]);
+        v[i] = min(v[i + 1], o.ask(1, 1, n, i, n) - sum[i - 1]);
+    }
+    for (int i = 1; i <= n; i++) p.update(1, 1, n, i, i, v[i + 1] + sum[i]);
+    for (int i = 1; i <= m; i++) p.update(1, 1, n, r[i], n, -c[i]);
+    for (int i = 1; i <= n; i++)
+    {
+        for (auto o : rc[i]) p.update(1, 1, n, r[o], n, c[o]);
+        p.update(1, 1, n, 1, n, u[i - 1] - sum[i - 1]);
+        p.update(1, 1, n, 1, n, sum[i - 1] - u[i - 1]);
+        cout << an + min(u[n], p.ask(1, 1, n, i, n)) << ' ';
     }
     return 0;
 }
