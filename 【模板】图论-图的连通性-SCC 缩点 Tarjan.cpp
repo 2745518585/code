@@ -1,79 +1,43 @@
 #include<cstdio>
 #include<algorithm>
+#include<vector>
 #include<stack>
 #include<queue>
 using namespace std;
-const int N=10001,M=100001;
-int n,m,p=1,tot,s,t[N],d[N],r[N],l[N],f[N],g[N],p0=1,t0[N];
-bool h[N];
+const int N=1000001;
+int n,m,q,tot,b[N],r[N],l[N],f[N],g[N];
+vector<int> a[N],a2[N];
+stack<int> S;
 struct tree
 {
     int b,c;
 }T[N];
-struct str
-{
-	int m,q;
-}a[M],a0[M];
-stack<int> S;
-void road(int x,int y)
-{
-    a[++p].m=y;
-    a[p].q=t[x];
-    t[x]=p;
-}
-void road0(int x,int y)
-{
-    a0[++p0].m=y;
-    a0[p].q=t0[x];
-    t0[x]=p0;
-}
 void dfs(int x)
 {
     T[x].b=T[x].c=++tot;
     S.push(x);
-    for(int i=t[x];i!=0;i=a[i].q)
+    for(auto i:a[x])
     {
-    	if(T[a[i].m].b==0)
-    	{
-    		dfs(a[i].m);
-    		T[x].c=min(T[x].c,T[a[i].m].c);
-    	}
-    	else if(h[a[i].m]==false)
-    	{
-    		T[x].c=min(T[x].c,T[a[i].m].c);
-    	}
+        if(T[i].b==0)
+        {
+            dfs(i);
+            T[x].c=min(T[x].c,T[i].c);
+        }
+        else if(r[i]==0)
+        {
+            T[x].c=min(T[x].c,T[i].b);
+        }
     }
     if(T[x].b==T[x].c)
     {
-    	++s;
-    	while(S.top()!=x)
-    	{
-    		h[S.top()]=true;
-    		r[S.top()]=s;
-            S.pop();
-    	}
-    	h[x]=true;
-    	r[x]=s;
-        S.pop();
-    }
-}
-void tpsort()
-{
-    queue<int> Q;
-    for(int i=1;i<=s;++i)
-    {
-        if(l[i]==0) Q.push(i);
-    }
-    while(!Q.empty())
-    {
-        int k=Q.front();
-        Q.pop();
-        for(int i=t0[k];i!=0;i=a0[i].q)
+        ++q;
+        while(S.top()!=x)
         {
-            f[a0[i].m]=max(f[a0[i].m],f[k]+g[a0[i].m]);
-            --l[a0[i].m];
-            if(l[a0[i].m]==0) Q.push(a0[i].m);
+            r[S.top()]=q;
+            S.pop();
         }
+        r[x]=q;
+        S.pop();
     }
 }
 int main()
@@ -81,43 +45,45 @@ int main()
     scanf("%d%d",&n,&m);
     for(int i=1;i<=n;++i)
     {
-        scanf("%d",&d[i]);
+        scanf("%d",&b[i]);
     }
-	for(int i=1;i<=m;++i)
-	{
-		int x,y;
+    for(int i=1;i<=m;++i)
+    {
+        int x,y;
         scanf("%d%d",&x,&y);
-        road(x,y);
-	}
-	for(int i=1;i<=n;++i)
-	{
-		if(T[i].b==0) dfs(i);
-	}
-	for(int i=1;i<=n;++i)
-	{
-		for(int j=t[i];j!=0;j=a[j].q)
-		{
-			if(r[i]!=r[a[j].m])
-			{
-				++l[r[a[j].m]];
-                road0(r[i],r[a[j].m]);
-			}
-		}
-	}
+        a[x].push_back(y);
+    }
     for(int i=1;i<=n;++i)
     {
-        g[r[i]]+=d[i];
+        if(T[i].b==0) dfs(i);
     }
-    for(int i=1;i<=s;++i)
-    {
-        f[i]=g[i];
-    }
-    tpsort();
-    int w=0;
     for(int i=1;i<=n;++i)
     {
-        w=max(w,f[r[i]]);
+        g[r[i]]+=b[i];
+        for(auto j:a[i])
+        {
+            if(r[i]!=r[j]) a2[r[i]].push_back(r[j]),++l[r[j]];
+        }
     }
-    printf("%d",w);
+    for(int i=1;i<=q;++i) f[i]=g[i];
+    queue<int> Q;
+    for(int i=1;i<=q;++i)
+    {
+        if(l[i]==0) Q.push(i);
+    }
+    while(!Q.empty())
+    {
+        int k=Q.front();
+        Q.pop();
+        for(auto i:a2[k])
+        {
+            f[i]=max(f[i],f[k]+g[i]);
+            --l[i];
+            if(l[i]==0) Q.push(i);
+        }
+    }
+    int s=0;
+    for(int i=1;i<=q;++i) s=max(s,f[i]);
+    printf("%d",s);
     return 0;
 }
