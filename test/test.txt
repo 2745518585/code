@@ -1,0 +1,14 @@
+use_builtin_judger on
+use_builtin_checker fcmp
+n_tests 2
+n_ex_tests 0
+n_sample_tests 0
+input_pre a
+input_suf in
+output_pre a
+output_suf out
+time_limit 1
+memory_limit 512
+point_score_1 30
+point_score_2 70
+tj zip
